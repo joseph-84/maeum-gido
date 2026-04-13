@@ -1,0 +1,174 @@
+.grp-page {
+  min-height: 100vh;
+  background: #f4f3ef;
+  font-family: 'Noto Sans KR', sans-serif;
+  padding-bottom: 80px;
+}
+
+/* 헤더 */
+.grp-header {
+  background: #2D5016;
+  padding: 48px 20px 24px;
+}
+.grp-header__title { font-size: 24px; font-weight: 500; color: #fff; }
+.grp-header__sub   { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+/* 목록 */
+.grp-list  { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.grp-empty { text-align: center; padding: 48px 0; color: #aaa; font-size: 14px; }
+
+/* 카드 */
+.grp-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 0.5px solid rgba(0,0,0,0.07);
+  overflow: hidden;
+}
+.grp-card__header {
+  display: flex; align-items: center;
+  padding: 16px; gap: 12px; cursor: pointer;
+}
+.grp-card__color-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.grp-card__info      { flex: 1; min-width: 0; }
+.grp-card__name      { font-size: 15px; font-weight: 500; color: #1a1a1a; }
+.grp-card__desc      { font-size: 12px; color: #999; margin-top: 2px; }
+.grp-card__count     { font-size: 12px; color: #aaa; flex-shrink: 0; }
+.grp-card__arrow {
+  font-size: 18px; color: #ccc; flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.grp-card__arrow--open { transform: rotate(90deg); }
+
+/* 펼쳐진 바디 */
+.grp-card__body {
+  border-top: 0.5px solid rgba(0,0,0,0.06);
+  padding: 12px 16px 16px;
+}
+.grp-card__prayers { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+
+.grp-prayer-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  background: #f9f9f7; border-radius: 10px;
+}
+.grp-prayer-row__num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #eee; display: flex; align-items: center;
+  justify-content: center; font-size: 11px; font-weight: 500;
+  color: #888; flex-shrink: 0;
+}
+.grp-prayer-row__dot   { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.grp-prayer-row__title { flex: 1; font-size: 14px; color: #333; }
+.grp-prayer-row__btns  { display: flex; gap: 4px; }
+
+.grp-order-btn {
+  width: 28px; height: 28px; border-radius: 8px;
+  border: 0.5px solid rgba(0,0,0,0.12);
+  background: #fff; cursor: pointer; font-size: 14px; color: #555;
+}
+.grp-order-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* 액션 버튼 */
+.grp-card__actions { display: flex; gap: 8px; }
+.grp-action-btn {
+  flex: 1; padding: 9px 0;
+  border-radius: 10px; border: 0.5px solid rgba(0,0,0,0.12);
+  background: #f4f3ef; color: #444;
+  font-size: 13px; font-weight: 500;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer; transition: background 0.15s;
+}
+.grp-action-btn:hover     { background: #eae9e4; }
+.grp-action-btn--active   { background: #e8f0e0; color: #2D5016; border-color: #2D5016; }
+.grp-action-btn--del      { color: #E86B5E; border-color: rgba(232,107,94,0.3); }
+.grp-action-btn--del:hover{ background: #fdf0ee; }
+
+/* FAB */
+.grp-fab {
+  position: fixed; bottom: 84px; right: 20px;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: #2D5016; color: #fff;
+  border: none; font-size: 26px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 12px rgba(45,80,22,0.35); z-index: 10;
+}
+
+/* 모달 */
+.grp-modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex; align-items: flex-end; z-index: 100;
+}
+.grp-modal {
+  background: #fff; border-radius: 20px 20px 0 0;
+  width: 100%; max-height: 90vh; overflow-y: auto;
+  padding: 20px;
+}
+.grp-modal__header {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 16px;
+}
+.grp-modal__title  { font-size: 18px; font-weight: 500; color: #1a1a1a; }
+.grp-modal__close {
+  border: none; background: #f0f0ec;
+  width: 28px; height: 28px; border-radius: 50%;
+  cursor: pointer; font-size: 13px; color: #666;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* 폼 */
+.grp-form          { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.grp-form__label   { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; }
+.grp-form__input {
+  width: 100%; padding: 10px 12px;
+  border: 0.5px solid rgba(0,0,0,0.15); border-radius: 10px;
+  font-size: 14px; font-family: 'Noto Sans KR', sans-serif;
+  color: #1a1a1a; background: #fafaf8; outline: none;
+}
+.grp-form__input:focus { border-color: #2D5016; }
+
+/* 색상 선택 */
+.grp-form__colors { display: flex; gap: 10px; padding: 4px 0; }
+.grp-form__color-btn {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer;
+  transition: transform 0.15s;
+}
+.grp-form__color-btn--active {
+  border-color: #1a1a1a; transform: scale(1.15);
+}
+
+/* 기도문 선택 목록 */
+.grp-form__prayer-list {
+  display: flex; flex-direction: column; gap: 4px;
+  max-height: 220px; overflow-y: auto;
+  border: 0.5px solid rgba(0,0,0,0.1); border-radius: 10px;
+  padding: 6px;
+}
+.grp-form__prayer-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 10px; border-radius: 8px; cursor: pointer;
+  transition: background 0.1s;
+}
+.grp-form__prayer-item:hover        { background: #f4f3ef; }
+.grp-form__prayer-item--checked     { background: #e8f0e0; }
+.grp-form__prayer-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.grp-form__prayer-title{ flex: 1; font-size: 14px; color: #333; }
+.grp-form__check {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid #ccc; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 12px; color: #ccc; flex-shrink: 0;
+}
+.grp-form__check--on { background: #2D5016; border-color: #2D5016; color: #fff; }
+
+/* 모달 푸터 */
+.grp-modal__footer { display: flex; gap: 8px; padding-top: 14px; border-top: 0.5px solid rgba(0,0,0,0.08); }
+.grp-modal__btn {
+  flex: 1; padding: 13px;
+  border-radius: 12px; border: none;
+  font-size: 14px; font-weight: 500;
+  font-family: 'Noto Sans KR', sans-serif; cursor: pointer;
+}
+.grp-modal__btn--cancel { background: #f4f3ef; color: #666; }
+.grp-modal__btn--save   { background: #2D5016; color: #fff; }

@@ -1,0 +1,125 @@
+/* ============================================================
+   theme/variables.css — 마음의 기도 Ionic 테마 변수
+   ============================================================
+   Ionic의 CSS 변수 시스템을 사용해 앱 전체 색상/폰트를 정의.
+   Primary 색상을 천주교 분위기의 다크 그린 계열로 설정.
+   ============================================================ */
+
+:root {
+  /* ── Primary (앱 대표 색상: 숲 속 수도원 그린) ── */
+  --ion-color-primary:           #2D5016;
+  --ion-color-primary-rgb:       45, 80, 22;
+  --ion-color-primary-contrast:  #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade:     #274614;
+  --ion-color-primary-tint:      #42612D;
+
+  /* ── Secondary (보조: 올리브 골드) ── */
+  --ion-color-secondary:         #7A6A2E;
+  --ion-color-secondary-rgb:     122, 106, 46;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade:   #6B5D29;
+  --ion-color-secondary-tint:    #877943;
+
+  /* ── Tertiary (포인트: 양피지 베이지) ── */
+  --ion-color-tertiary:          #C4A24A;
+  --ion-color-tertiary-rgb:      196, 162, 74;
+  --ion-color-tertiary-contrast: #000000;
+  --ion-color-tertiary-contrast-rgb: 0, 0, 0;
+  --ion-color-tertiary-shade:    #AC8F41;
+  --ion-color-tertiary-tint:     #CAAB5C;
+
+  /* ── Success ── */
+  --ion-color-success:           #2D7A3A;
+  --ion-color-success-rgb:       45, 122, 58;
+  --ion-color-success-contrast:  #ffffff;
+  --ion-color-success-shade:     #276B33;
+  --ion-color-success-tint:      #42874E;
+
+  /* ── Warning ── */
+  --ion-color-warning:           #E8A020;
+  --ion-color-warning-rgb:       232, 160, 32;
+  --ion-color-warning-contrast:  #000000;
+  --ion-color-warning-shade:     #CC8D1C;
+  --ion-color-warning-tint:      #EAAA36;
+
+  /* ── Danger ── */
+  --ion-color-danger:            #C0392B;
+  --ion-color-danger-rgb:        192, 57, 43;
+  --ion-color-danger-contrast:   #ffffff;
+  --ion-color-danger-shade:      #A93226;
+  --ion-color-danger-tint:       #C64D40;
+
+  /* ── Dark / Medium / Light ── */
+  --ion-color-dark:              #1A1A1A;
+  --ion-color-dark-rgb:          26, 26, 26;
+  --ion-color-dark-contrast:     #ffffff;
+  --ion-color-dark-shade:        #171717;
+  --ion-color-dark-tint:         #313131;
+
+  --ion-color-medium:            #6B6B6B;
+  --ion-color-medium-rgb:        107, 107, 107;
+  --ion-color-medium-contrast:   #ffffff;
+  --ion-color-medium-shade:      #5E5E5E;
+  --ion-color-medium-tint:       #7A7A7A;
+
+  --ion-color-light:             #F4F3EF;  /* 따뜻한 오프화이트 */
+  --ion-color-light-rgb:         244, 243, 239;
+  --ion-color-light-contrast:    #000000;
+  --ion-color-light-shade:       #D7D6D2;
+  --ion-color-light-tint:        #F5F4F1;
+
+  /* ── 앱 배경 ── */
+  --ion-background-color:        #FFFFFF;
+  --ion-background-color-rgb:    255, 255, 255;
+
+  --ion-text-color:              #1A1A1A;
+  --ion-text-color-rgb:          26, 26, 26;
+
+  /* ── 폰트 ── */
+  --ion-font-family:
+    'Noto Sans KR',     /* 한글 최우선 */
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  /* ── Ionic 컴포넌트 세부 조정 ── */
+  --ion-item-background:          #FFFFFF;
+  --ion-toolbar-background:       var(--ion-color-primary);
+  --ion-toolbar-color:            #FFFFFF;
+  --ion-tab-bar-background:       #FFFFFF;
+  --ion-tab-bar-color:            var(--ion-color-medium);
+  --ion-tab-bar-color-selected:   var(--ion-color-primary);
+  --ion-safe-area-bottom:         env(safe-area-inset-bottom, 0px);
+}
+
+/* ── 다크 모드 ── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ion-color-primary:           #5A8F3C;
+    --ion-color-primary-rgb:       90, 143, 60;
+    --ion-color-primary-shade:     #4F7D35;
+    --ion-color-primary-tint:      #6B9A50;
+
+    --ion-background-color:        #121212;
+    --ion-background-color-rgb:    18, 18, 18;
+    --ion-text-color:              #F0EFE9;
+    --ion-text-color-rgb:          240, 239, 233;
+
+    --ion-color-light:             #1E1E1E;
+    --ion-color-light-rgb:         30, 30, 30;
+    --ion-color-light-shade:       #1A1A1A;
+    --ion-color-light-tint:        #2A2A2A;
+
+    --ion-color-medium:            #9E9E9E;
+
+    --ion-item-background:         #1E1E1E;
+    --ion-toolbar-background:      #1A3010;
+    --ion-tab-bar-background:      #1A1A1A;
+  }
+}

@@ -1,0 +1,275 @@
+.lib-page {
+  min-height: 100vh;
+  background: #f4f3ef;
+  font-family: 'Noto Sans KR', sans-serif;
+  padding-bottom: 80px;
+  position: relative;
+}
+
+/* 헤더 */
+.lib-header {
+  background: #2D5016;
+  padding: 48px 20px 0;
+}
+.lib-header__title {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+.lib-header__tabs {
+  display: flex;
+  gap: 0;
+}
+.lib-header__tab {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.lib-header__tab--active {
+  color: #fff;
+  border-bottom-color: #A8D678;
+}
+
+/* 검색 */
+.lib-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 16px 0;
+  background: #fff;
+  border: 0.5px solid rgba(0,0,0,0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+.lib-search__icon { font-size: 15px; }
+.lib-search__input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  background: none;
+  color: #1a1a1a;
+}
+.lib-search__input::placeholder { color: #aaa; }
+.lib-search__clear {
+  border: none; background: none;
+  color: #aaa; cursor: pointer; font-size: 14px; padding: 2px;
+}
+
+/* 카테고리 칩 */
+.lib-chips {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.lib-chips::-webkit-scrollbar { display: none; }
+.lib-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 0.5px solid rgba(0,0,0,0.15);
+  background: #fff;
+  color: #666;
+  transition: all 0.15s;
+}
+.lib-chip--active {
+  background: #2D5016;
+  color: #fff;
+  border-color: #2D5016;
+}
+
+/* 목록 */
+.lib-list {
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lib-empty {
+  text-align: center;
+  padding: 48px 0;
+  color: #aaa;
+  font-size: 14px;
+}
+
+.lib-item-wrap { position: relative; }
+
+.lib-item {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 12px;
+  gap: 10px;
+  cursor: pointer;
+  border: 0.5px solid rgba(0,0,0,0.07);
+  transition: background 0.1s, transform 0.2s;
+  position: relative;
+  z-index: 1;
+}
+.lib-item:hover { background: #fafaf8; }
+.lib-item--swiped { transform: translateX(-88px); }
+
+.lib-item__dot {
+  width: 10px; height: 10px;
+  border-radius: 50%; flex-shrink: 0;
+}
+.lib-item__text { flex: 1; min-width: 0; }
+.lib-item__title {
+  font-size: 15px; color: #1a1a1a;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.lib-item__preview {
+  font-size: 12px; color: #999;
+  margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.lib-item__badge {
+  display: inline-block;
+  font-size: 10px; font-weight: 500;
+  padding: 2px 8px; border-radius: 20px;
+  margin-top: 4px;
+}
+
+.lib-item__star {
+  font-size: 20px; border: none; background: none;
+  cursor: pointer; color: #ddd; flex-shrink: 0;
+  transition: color 0.15s; padding: 4px;
+}
+.lib-item__star--on { color: #F0C040; }
+
+.lib-item__more {
+  font-size: 18px; border: none; background: none;
+  cursor: pointer; color: #bbb; flex-shrink: 0;
+  padding: 4px; letter-spacing: -1px;
+}
+
+/* 슬라이드 액션 버튼 */
+.lib-item__actions {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  display: flex;
+  border-radius: 0 14px 14px 0;
+  overflow: hidden;
+  z-index: 0;
+}
+.lib-item__action-btn {
+  width: 44px;
+  border: none; cursor: pointer;
+  font-size: 12px; font-weight: 500;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #fff;
+}
+.lib-item__action-btn--edit { background: #4A9B6F; }
+.lib-item__action-btn--del  { background: #E86B5E; }
+
+/* FAB */
+.lib-fab {
+  position: fixed;
+  bottom: 84px; right: 20px;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: #2D5016;
+  color: #fff;
+  border: none; font-size: 26px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 12px rgba(45,80,22,0.35);
+  z-index: 10;
+}
+
+/* 모달 공통 */
+.lib-modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex; align-items: flex-end;
+  z-index: 100;
+}
+.lib-modal {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+.lib-modal--form { max-height: 92vh; }
+
+.lib-modal__header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 12px;
+  margin-bottom: 16px;
+}
+.lib-modal__title {
+  font-size: 18px; font-weight: 500; color: #1a1a1a;
+}
+.lib-modal__badge {
+  display: inline-block;
+  font-size: 11px; font-weight: 500;
+  padding: 3px 10px; border-radius: 20px;
+  margin-top: 4px;
+}
+.lib-modal__close {
+  border: none; background: #f0f0ec;
+  width: 28px; height: 28px; border-radius: 50%;
+  cursor: pointer; font-size: 13px; color: #666;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.lib-modal__content {
+  font-size: 15px; line-height: 1.9;
+  color: #333;
+  white-space: pre-wrap;
+  margin-bottom: 20px;
+}
+.lib-modal__footer {
+  display: flex; gap: 8px;
+  padding-top: 12px;
+  border-top: 0.5px solid rgba(0,0,0,0.08);
+}
+.lib-modal__btn {
+  flex: 1; padding: 12px;
+  border-radius: 12px; border: none;
+  font-size: 14px; font-weight: 500;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+}
+.lib-modal__btn--close { background: #f4f3ef; color: #666; }
+.lib-modal__btn--edit  { background: #2D5016; color: #fff; }
+
+/* 폼 */
+.lib-form { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.lib-form__label {
+  font-size: 11px; font-weight: 500; color: #888;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-top: 8px;
+}
+.lib-form__input,
+.lib-form__select,
+.lib-form__textarea {
+  width: 100%; padding: 10px 12px;
+  border: 0.5px solid rgba(0,0,0,0.15);
+  border-radius: 10px; font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #1a1a1a; background: #fafaf8;
+  outline: none;
+}
+.lib-form__input:focus,
+.lib-form__select:focus,
+.lib-form__textarea:focus { border-color: #2D5016; }
+.lib-form__textarea { resize: vertical; line-height: 1.7; }
