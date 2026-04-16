@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../hooks/useAppData';
+import { syncPrayersFromServer } from '../../utils/prayerSync';
 import { savePrayers, saveGroups, saveCompletions, saveTodayList } from '../../utils/storage';
 import './SettingsPage.css';
 

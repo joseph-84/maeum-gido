@@ -6,6 +6,7 @@ import {
   mergeStaticPrayers,
 } from '../utils/storage';
 import staticJson from '../assets/prayers.json';
+import { syncPrayersFromServer } from '../utils/prayerSync';
 
 const staticPrayers = staticJson as StoredPrayer[];
 
@@ -82,30 +83,42 @@ export function useAppData(): AppData {
   const [isLoading,   setIsLoading]   = useState(true);
 
   useEffect(() => {
-    // 기도문 병합
-    const merged = mergeStaticPrayers(staticPrayers);
-    setPrayers(merged.filter(p => !p.isDeleted));
+    (async () => {
+      // 1. 로컬 데이터 먼저 로드
+      const merged = mergeStaticPrayers(staticPrayers);
+      setPrayers(merged.filter(p => !p.isDeleted));
 
-    // 그룹: 저장된 것 없으면 디폴트로
-    const savedGroups = getGroups();
-    if (savedGroups.length === 0) {
-      saveGroups(DEFAULT_GROUPS);
-      setGroups(DEFAULT_GROUPS);
-    } else {
-      setGroups(savedGroups.filter(g => !g.isDeleted));
-    }
+      const savedGroups = getGroups();
+      if (savedGroups.length === 0) {
+        saveGroups(DEFAULT_GROUPS);
+        setGroups(DEFAULT_GROUPS);
+      } else {
+        setGroups(savedGroups.filter(g => !g.isDeleted));
+      }
 
-    // 오늘 목록: 저장된 것 없으면 디폴트로
-    const savedToday = getTodayList();
-    if (savedToday.length === 0) {
-      saveTodayList(DEFAULT_TODAY);
-      setTodayListSt(DEFAULT_TODAY);
-    } else {
-      setTodayListSt(savedToday);
-    }
+      const savedToday = getTodayList();
+      if (savedToday.length === 0) {
+        saveTodayList(DEFAULT_TODAY);
+        setTodayListSt(DEFAULT_TODAY);
+      } else {
+        setTodayListSt(savedToday);
+      }
 
-    setCompletions(getCompletions());
-    setIsLoading(false);
+      setCompletions(getCompletions());
+      setIsLoading(false);
+
+      // 2. 백그라운드에서 서버 동기화 (실패해도 앱 동작에 영향 없음)
+      try {
+        const result = await syncPrayersFromServer();
+        if (result.synced) {
+          const updated = getPrayers().filter(p => !p.isDeleted);
+          setPrayers(updated);
+          console.info(`[useAppData] 기도문 업데이트: v${result.version} (+${result.addedCount} 추가, ~${result.updatedCount} 수정)`);
+        }
+      } catch {
+        // 네트워크 없어도 조용히 무시
+      }
+    })();
   }, []);
 
   const addPrayer = useCallback((input: Omit<StoredPrayer,'id'|'source'|'createdAt'|'updatedAt'>) => {
