@@ -74,15 +74,34 @@ const SettingsPage: React.FC = () => {
 
   // ── 알림 권한 요청 ────────────────────────────────────────
   const handleNotifPermission = async () => {
-    if (!('Notification' in window)) {
-      showToast('이 브라우저는 알림을 지원하지 않습니다.');
-      return;
-    }
-    const result = await Notification.requestPermission();
-    if (result === 'granted') {
-      showToast('알림 권한이 허용되었습니다.');
+    const isNative = !!(
+      (window as any).Capacitor &&
+      (window as any).Capacitor.isNativePlatform?.()
+    );
+
+    if (isNative) {
+      try {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        const { display } = await LocalNotifications.requestPermissions();
+        if (display === 'granted') {
+          showToast('알림 권한이 허용되었습니다. 기도 시간에 알림이 옵니다.');
+        } else {
+          showToast('알림 권한이 거부되었습니다. 설정 → 앱 → 마음의 기도 → 알림에서 허용해주세요.');
+        }
+      } catch (e) {
+        showToast('알림 설정 중 오류가 발생했습니다.');
+      }
     } else {
-      showToast('알림 권한이 거부되었습니다. 브라우저 설정에서 변경해주세요.');
+      if (!('Notification' in window)) {
+        showToast('앱을 설치하면 알림을 받을 수 있습니다.');
+        return;
+      }
+      const result = await Notification.requestPermission();
+      if (result === 'granted') {
+        showToast('알림 권한이 허용되었습니다.');
+      } else {
+        showToast('알림 권한이 거부되었습니다.');
+      }
     }
   };
 

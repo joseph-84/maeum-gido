@@ -1,0 +1,13 @@
+[
+  {
+    "id": "p001",
+    "title": "성호경",
+    "category": "주요기도",
+    "isFavorite": false,
+    "isDeleted": false,
+    "source": "static",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "content": "성부와 성자와 성령의 이름으로.\n아멘."
+  }
+]

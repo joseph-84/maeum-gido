@@ -51,28 +51,19 @@ export function useAppContext(): AppData {
 
 // 디폴트 오늘 목록 (그룹 포함)
 const DEFAULT_TODAY: TodayItem[] = [
-  { id: 'p012', type: 'prayer', time: '07:00', days: [] },
-  { id: 'p002', type: 'prayer', time: '09:00', days: [] },
-  { id: 'p013', type: 'prayer', time: '21:00', days: [] },
+  { id: 'p013', type: 'prayer', time: '06:00', days: [] },
+  { id: 'p013', type: 'prayer', time: '12:00', days: [] },
+  { id: 'p013', type: 'prayer', time: '18:00', days: [] },
+  { id: 'g001', type: 'group', time: '07:00', days: [] }
 ];
 
 // 디폴트 그룹
 const DEFAULT_GROUPS: StoredGroup[] = [
   {
-    id: 'g001', name: '아침기도 루틴', description: '매일 아침 바치는 기도 순서',
-    color: '#E8963A', prayerIds: ['p012','p002','p004'],
+    id: 'g001', name: '아침기도', description: '매일 아침 바치는 기도 순서',
+    color: '#E8963A', prayerIds: ['p020','p054'],
     isDeleted: false, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z',
-  },
-  {
-    id: 'g002', name: '레지오 마리애', description: '레지오 모임 기도 순서',
-    color: '#7B68EE', prayerIds: ['p003','p020','p004'],
-    isDeleted: false, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z',
-  },
-  {
-    id: 'g003', name: '잠자리 기도', description: '잠들기 전 기도',
-    color: '#4A9B6F', prayerIds: ['p013','p002'],
-    isDeleted: false, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z',
-  },
+  }
 ];
 
 export function useAppData(): AppData {

@@ -4,20 +4,20 @@ const config: CapacitorConfig = {
   appId: 'com.maeumgido.app',
   appName: '마음의 기도',
   webDir: 'build',
-  bundledWebRuntime: false,
   android: {
+    // WebView가 시스템 바 뒤까지 확장되도록 설정
+    // 이후 safe-area-inset-* CSS 변수로 여백 조정
     allowMixedContent: false,
-    captureInput: true,
-    webContentsDebuggingEnabled: false, // 배포 시 false
   },
   plugins: {
     LocalNotifications: {
-      smallIcon: 'ic_notification',
+      smallIcon: 'ic_launcher_foreground',
       iconColor: '#2D5016',
       sound: 'default',
     },
-    Preferences: {
-      group: 'MaeumGidoStorage',
+    // safe area 활성화
+    EdgeToEdge: {
+      backgroundColor: '#2D5016',
     },
   },
 };
