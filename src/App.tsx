@@ -19,7 +19,7 @@
 //   - 앱 포그라운드 복귀 시 스케줄 재확인 (App 플러그인 이용)
 // ============================================================
 
-import React, { useEffect, createContext, useContext } from 'react';
+import React, { useEffect } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import {
   IonApp,
@@ -52,9 +52,8 @@ const GroupsPage   = lazy(() => import('./pages/Groups/GroupsPage'));
 const SettingsPage = lazy(() => import('./pages/Settings/SettingsPage'));
 
 /* ── 훅 ── */
-import { usePrayers } from './hooks/usePrayers';
+import { useAppData, AppContext } from './hooks/useAppData';
 import { useNotifications } from './hooks/useNotifications';
-import type { UsePrayersReturn } from './types';
 
 /* ── Ionic + Capacitor 스타일 ── */
 import '@ionic/react/css/core.css';
@@ -72,15 +71,6 @@ import './App.css';
 
 setupIonicReact({ mode: 'md' }); // Android는 Material Design 모드
 
-// ─── Context ────────────────────────────────────────────────
-// 하위 페이지/컴포넌트에서 usePrayerContext()로 데이터에 접근
-export const PrayerContext = createContext<UsePrayersReturn | null>(null);
-
-export function usePrayerContext(): UsePrayersReturn {
-  const ctx = useContext(PrayerContext);
-  if (!ctx) throw new Error('PrayerContext가 없습니다. App 트리 안에서 사용해주세요.');
-  return ctx;
-}
 
 // ─── 로딩 스크린 ────────────────────────────────────────────
 const SplashFallback: React.FC = () => (
@@ -92,22 +82,14 @@ const SplashFallback: React.FC = () => (
 
 // ─── 앱 본체 ────────────────────────────────────────────────
 const App: React.FC = () => {
-  const prayerState = usePrayers();
+  const appData = useAppData();
   const { rescheduleAll } = useNotifications();
 
   // ── 앱 시작 시 알림 재등록 ──────────────────────────────
   useEffect(() => {
-    if (prayerState.isLoading) return;
-
-    const getTitleForTarget = (targetId: string): string => {
-      const prayer = prayerState.prayers.find((p) => p.id === targetId);
-      if (prayer) return prayer.title;
-      const group = prayerState.groups.find((g) => g.id === targetId);
-      return group?.name ?? '기도';
-    };
-
-    rescheduleAll(prayerState.schedules, getTitleForTarget).catch(console.error);
-  }, [prayerState.isLoading]); // 초기 로드 완료 시 1회 실행
+    if (appData.isLoading) return;
+    rescheduleAll([], () => '기도').catch(console.error);
+  }, [appData.isLoading]); // 초기 로드 완료 시 1회 실행
 
   // ── 앱 포그라운드 복귀 시 스케줄 상태 갱신 ──────────────
   useEffect(() => {
@@ -131,7 +113,7 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <PrayerContext.Provider value={prayerState}>
+    <AppContext.Provider value={appData}>
       <IonApp>
         <IonReactRouter>
           <IonTabs>
@@ -227,7 +209,7 @@ const App: React.FC = () => {
           </IonTabs>
         </IonReactRouter>
       </IonApp>
-    </PrayerContext.Provider>
+    </AppContext.Provider>
   );
 };
 
