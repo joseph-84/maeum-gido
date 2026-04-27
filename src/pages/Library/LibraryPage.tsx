@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../../hooks/useAppData';
 import { StoredPrayer } from '../../utils/storage';
+import { registerBackHandler } from '../../utils/backHandler';
 import './LibraryPage.css';
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -38,6 +39,23 @@ const LibraryPage: React.FC = () => {
     if (search && !p.title.includes(search) && !p.content.includes(search)) return false;
     return true;
   }), [prayers, activeTab, activeCat, search]);
+
+  // 모달 열림 시 배경 스크롤 잠금 + 뒤로가기 핸들러
+  useEffect(() => {
+    const isOpen = !!(detailPrayer || showAddForm);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [detailPrayer, showAddForm]);
+
+  useEffect(() => {
+    if (!detailPrayer) return;
+    return registerBackHandler(() => { setDetailPrayer(null); return true; });
+  }, [detailPrayer]);
+
+  useEffect(() => {
+    if (!showAddForm) return;
+    return registerBackHandler(() => { setShowAddForm(false); return true; });
+  }, [showAddForm]);
 
   const openAdd = () => {
     setFormTitle(''); setFormContent(''); setFormCategory('주요기도'); setFormCustomCat('');

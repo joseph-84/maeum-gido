@@ -1,4 +1,4 @@
-.home-page { min-height:100vh; background:#f4f3ef; font-family:'Noto Sans KR',sans-serif; padding-bottom:80px; }
+.home-page { height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#f4f3ef; font-family:'Noto Sans KR',sans-serif; padding-bottom:70px; }
 
 /* 헤더 */
 .home-header { background:#2D5016; padding:48px 20px 20px; }
@@ -149,8 +149,12 @@
 .home-item__check--done { color:#2D5016; background:#f0f7ea; }
 
 /* ── 기도문 모달 바디 ── */
-.hm-prayer-content { padding:4px 20px 32px; font-size:15px; line-height:2; color:#333; white-space:pre-wrap; overflow-y:auto; }
+.hm-prayer-content { padding:4px 20px 16px; font-size:15px; line-height:2; color:#333; white-space:pre-wrap; overflow-y:auto; }
 .hm-prayer-cat { font-size:12px; margin-top:2px; display:block; }
+
+/* ── 기도문 모달 닫기 버튼 ── */
+.hm-footer { padding:12px 20px 24px; flex-shrink:0; }
+.hm-footer__close { width:100%; padding:14px; border:none; border-radius:14px; background:#2D5016; color:#fff; font-size:15px; font-weight:500; font-family:'Noto Sans KR',sans-serif; cursor:pointer; }
 
 /* ── 그룹 기도 목록 모달 ── */
 .hm-group-hint { font-size:12px; color:#aaa; padding:4px 20px 8px; }

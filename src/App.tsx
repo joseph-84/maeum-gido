@@ -20,7 +20,7 @@
 // ============================================================
 
 import React, { useEffect } from 'react';
-import { Redirect, Route } from 'react-router-dom';
+import { Redirect, Route, useLocation } from 'react-router-dom';
 import {
   IonApp,
   IonIcon,
@@ -54,6 +54,7 @@ const SettingsPage = lazy(() => import('./pages/Settings/SettingsPage'));
 /* ── 훅 ── */
 import { useAppData, AppContext } from './hooks/useAppData';
 import { useNotifications } from './hooks/useNotifications';
+import { handleBackPress, hasOpenModal } from './utils/backHandler';
 
 /* ── Ionic + Capacitor 스타일 ── */
 import '@ionic/react/css/core.css';
@@ -80,6 +81,45 @@ const SplashFallback: React.FC = () => (
   </div>
 );
 
+// ─── 탭 레이아웃 (useLocation은 Router 내부에서만 사용 가능) ──
+const AppTabs: React.FC = () => {
+  const location = useLocation();
+  const path = location.pathname;
+
+  return (
+    <IonTabs>
+      <IonRouterOutlet>
+        <Suspense fallback={<SplashFallback />}>
+          <Route exact path="/home"><HomePage /></Route>
+          <Route exact path="/library"><LibraryPage /></Route>
+          <Route exact path="/groups"><GroupsPage /></Route>
+          <Route exact path="/settings"><SettingsPage /></Route>
+          <Route exact path="/"><Redirect to="/home" /></Route>
+        </Suspense>
+      </IonRouterOutlet>
+
+      <IonTabBar slot="bottom" className="app-tab-bar">
+        <IonTabButton tab="home" href="/home" className="app-tab-btn">
+          <IonIcon icon={path === '/home' ? home : homeOutline} />
+          <IonLabel>홈</IonLabel>
+        </IonTabButton>
+        <IonTabButton tab="library" href="/library" className="app-tab-btn">
+          <IonIcon icon={path === '/library' ? book : bookOutline} />
+          <IonLabel>기도문</IonLabel>
+        </IonTabButton>
+        <IonTabButton tab="groups" href="/groups" className="app-tab-btn">
+          <IonIcon icon={path === '/groups' ? folder : folderOutline} />
+          <IonLabel>그룹</IonLabel>
+        </IonTabButton>
+        <IonTabButton tab="settings" href="/settings" className="app-tab-btn">
+          <IonIcon icon={path === '/settings' ? settings : settingsOutline} />
+          <IonLabel>설정</IonLabel>
+        </IonTabButton>
+      </IonTabBar>
+    </IonTabs>
+  );
+};
+
 // ─── 앱 본체 ────────────────────────────────────────────────
 const App: React.FC = () => {
   const appData = useAppData();
@@ -105,6 +145,11 @@ const App: React.FC = () => {
   // ── 안드로이드 백 버튼 처리 ─────────────────────────────
   useEffect(() => {
     const listener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      // 모달이 열려 있으면 모달 닫기 우선
+      if (hasOpenModal()) {
+        handleBackPress();
+        return;
+      }
       if (!canGoBack) {
         CapacitorApp.exitApp();
       }
@@ -116,97 +161,7 @@ const App: React.FC = () => {
     <AppContext.Provider value={appData}>
       <IonApp>
         <IonReactRouter>
-          <IonTabs>
-
-            {/* ── 라우터 아웃렛 ── */}
-            <IonRouterOutlet>
-              <Suspense fallback={<SplashFallback />}>
-
-                <Route exact path="/home">
-                  <HomePage />
-                </Route>
-
-                <Route exact path="/library">
-                  <LibraryPage />
-                </Route>
-
-                <Route exact path="/groups">
-                  <GroupsPage />
-                </Route>
-
-                <Route exact path="/settings">
-                  <SettingsPage />
-                </Route>
-
-                {/* 기본 경로 리다이렉트 */}
-                <Route exact path="/">
-                  <Redirect to="/home" />
-                </Route>
-
-              </Suspense>
-            </IonRouterOutlet>
-
-            {/* ── 하단 탭 바 ── */}
-            <IonTabBar slot="bottom" className="app-tab-bar">
-
-              <IonTabButton tab="home" href="/home" className="app-tab-btn">
-                <IonIcon
-                  aria-hidden="true"
-                  icon={home}
-                  className="app-tab-btn__icon--active"
-                />
-                <IonIcon
-                  aria-hidden="true"
-                  icon={homeOutline}
-                  className="app-tab-btn__icon--inactive"
-                />
-                <IonLabel>홈</IonLabel>
-              </IonTabButton>
-
-              <IonTabButton tab="library" href="/library" className="app-tab-btn">
-                <IonIcon
-                  aria-hidden="true"
-                  icon={book}
-                  className="app-tab-btn__icon--active"
-                />
-                <IonIcon
-                  aria-hidden="true"
-                  icon={bookOutline}
-                  className="app-tab-btn__icon--inactive"
-                />
-                <IonLabel>기도문</IonLabel>
-              </IonTabButton>
-
-              <IonTabButton tab="groups" href="/groups" className="app-tab-btn">
-                <IonIcon
-                  aria-hidden="true"
-                  icon={folder}
-                  className="app-tab-btn__icon--active"
-                />
-                <IonIcon
-                  aria-hidden="true"
-                  icon={folderOutline}
-                  className="app-tab-btn__icon--inactive"
-                />
-                <IonLabel>그룹</IonLabel>
-              </IonTabButton>
-
-              <IonTabButton tab="settings" href="/settings" className="app-tab-btn">
-                <IonIcon
-                  aria-hidden="true"
-                  icon={settings}
-                  className="app-tab-btn__icon--active"
-                />
-                <IonIcon
-                  aria-hidden="true"
-                  icon={settingsOutline}
-                  className="app-tab-btn__icon--inactive"
-                />
-                <IonLabel>설정</IonLabel>
-              </IonTabButton>
-
-            </IonTabBar>
-          </IonTabs>
+          <AppTabs />
         </IonReactRouter>
       </IonApp>
     </AppContext.Provider>

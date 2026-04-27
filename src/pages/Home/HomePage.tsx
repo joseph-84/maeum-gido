@@ -37,6 +37,9 @@ const PrayerModal: React.FC<PrayerModalProps> = ({ prayer, onClose }) => (
         <button className="hm-head__close" onClick={onClose}>✕</button>
       </div>
       <div className="hm-prayer-content">{prayer.content.replace(/\\n/g, '\n')}</div>
+      <div className="hm-footer">
+        <button className="hm-footer__close" onClick={onClose}>닫기</button>
+      </div>
     </div>
   </div>
 );
