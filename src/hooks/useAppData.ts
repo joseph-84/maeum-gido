@@ -51,19 +51,19 @@ export function useAppContext(): AppData {
 
 // 디폴트 오늘 목록 (그룹 포함)
 const DEFAULT_TODAY: TodayItem[] = [
-  { id: 'p013', type: 'prayer', time: '06:00', days: [] },
-  { id: 'p013', type: 'prayer', time: '12:00', days: [] },
-  { id: 'p013', type: 'prayer', time: '18:00', days: [] },
-  { id: 'g001', type: 'group', time: '07:00', days: [] }
+  // { id: 'p013', instanceId: 'p013_1', type: 'prayer', time: '06:00', days: [] },
+  // { id: 'p013', instanceId: 'p013_2', type: 'prayer', time: '12:00', days: [] },
+  // { id: 'p013', instanceId: 'p013_3', type: 'prayer', time: '18:00', days: [] },
+  // { id: 'g001', instanceId: 'g001_1', type: 'group',  time: '07:00', days: [] },
 ];
 
-// 디폴트 그룹
+// 디폴트 그룹 — 변경 없음
 const DEFAULT_GROUPS: StoredGroup[] = [
-  {
-    id: 'g001', name: '아침기도', description: '매일 아침 바치는 기도 순서',
-    color: '#E8963A', prayerIds: ['p020','p054'],
-    isDeleted: false, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z',
-  }
+  // {
+  //   id: 'g001', name: '아침기도', description: '매일 아침 바치는 기도 순서',
+  //   color: '#E8963A', prayerIds: ['p020','p054'],
+  //   isDeleted: false, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z',
+  // }
 ];
 
 export function useAppData(): AppData {

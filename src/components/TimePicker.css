@@ -1,0 +1,117 @@
+/* TimePicker.css */
+
+.tp-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: flex-end;
+  z-index: 500;
+}
+.tp-sheet {
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  padding: 0 20px 32px;
+  padding-bottom: calc(32px + var(--nav-bar-height, 0px));
+}
+.tp-handle {
+  width: 36px; height: 4px;
+  background: #e0e0e0; border-radius: 2px;
+  margin: 12px auto 0;
+}
+.tp-title {
+  font-size: 16px; font-weight: 500;
+  color: #1a1a1a; text-align: center;
+  margin: 16px 0 4px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 미리보기 */
+.tp-preview {
+  display: flex; align-items: baseline;
+  justify-content: center; gap: 8px;
+  margin: 8px 0 16px;
+}
+.tp-preview__time {
+  font-size: 42px; font-weight: 300;
+  color: #2D5016; font-family: 'Noto Sans KR', sans-serif;
+  letter-spacing: 2px;
+}
+.tp-preview__period {
+  font-size: 18px; color: #888;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* AM/PM */
+.tp-period {
+  display: flex; gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.tp-period__btn {
+  flex: 1; max-width: 120px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  background: #f4f3ef;
+  color: #666; font-size: 15px;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tp-period__btn--active {
+  background: #2D5016;
+  color: #fff;
+  border-color: #2D5016;
+}
+
+/* 섹션 레이블 */
+.tp-section-label {
+  font-size: 11px; font-weight: 500;
+  color: #aaa; letter-spacing: 0.08em;
+  margin: 8px 0 6px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 숫자 그리드 */
+.tp-grid {
+  display: grid; gap: 6px;
+  margin-bottom: 8px;
+}
+.tp-grid--hours   { grid-template-columns: repeat(6, 1fr); }
+.tp-grid--minutes { grid-template-columns: repeat(6, 1fr); }
+
+.tp-cell {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: none;
+  background: #f4f3ef;
+  color: #333; font-size: 15px;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s;
+}
+.tp-cell:hover    { background: #e8f0e0; }
+.tp-cell--active  { background: #2D5016; color: #fff; font-weight: 500; }
+
+/* 하단 버튼 */
+.tp-footer {
+  display: flex; gap: 10px;
+  margin-top: 16px;
+}
+.tp-footer__cancel {
+  flex: 1; padding: 14px;
+  border-radius: 14px; border: none;
+  background: #f4f3ef; color: #666;
+  font-size: 15px; cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.tp-footer__confirm {
+  flex: 2; padding: 14px;
+  border-radius: 14px; border: none;
+  background: #2D5016; color: #fff;
+  font-size: 15px; font-weight: 500;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.tp-footer__confirm:hover { background: #3a6620; }

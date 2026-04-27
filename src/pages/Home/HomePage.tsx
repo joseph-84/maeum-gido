@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import TimePicker from '../../components/TimePicker';
 import { useAppContext } from '../../hooks/useAppData';
+import { registerBackHandler } from '../../utils/backHandler';
 import { TodayItem, StoredPrayer } from '../../utils/storage';
 import './HomePage.css';
 
@@ -86,6 +88,7 @@ const HomePage: React.FC = () => {
   const [editList,setEditList]         = useState<TodayItem[]>([]);
   const [pickerSearch,setPickerSearch] = useState('');
   const [pickerTab,setPickerTab]       = useState<'prayer'|'group'>('prayer');
+  const [timePickerIdx,setTimePickerIdx]= useState<number|null>(null); // 시간 선택기 열린 항목 인덱스
 
   // 기도문 모달
   const [viewPrayer,setViewPrayer]         = useState<StoredPrayer|null>(null);
@@ -99,6 +102,34 @@ const HomePage: React.FC = () => {
     todayList.filter(item=>item.days.length===0||item.days.includes(todayDow))
   ,[todayList,todayDow]);
 
+  // 모달 열릴 때 배경 스크롤 잠금 + 뒤로가기 핸들러 등록
+  React.useEffect(() => {
+    const isOpen = !!(viewPrayer || viewGroup || showEditor || showPicker);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [viewPrayer, viewGroup, showEditor, showPicker]);
+
+  React.useEffect(() => {
+    if (!viewPrayer) return;
+    // 기도문 모달 열림 → 뒤로가기로 닫기
+    return registerBackHandler(() => { setViewPrayer(null); return true; });
+  }, [viewPrayer]);
+
+  React.useEffect(() => {
+    if (!viewGroup) return;
+    return registerBackHandler(() => { setViewGroup(null); return true; });
+  }, [viewGroup]);
+
+  React.useEffect(() => {
+    if (!showEditor) return;
+    return registerBackHandler(() => { setShowEditor(false); return true; });
+  }, [showEditor]);
+
+  React.useEffect(() => {
+    if (!showPicker) return;
+    return registerBackHandler(() => { setShowPicker(false); return true; });
+  }, [showPicker]);
+
   const resolveItem = (item:TodayItem) => {
     if(item.type==='prayer'){
       const p=prayers.find(x=>x.id===item.id);
@@ -111,21 +142,17 @@ const HomePage: React.FC = () => {
 
   const total=displayItems.length;
   const doneCount=displayItems.filter(item=>{
-    const {ids}=resolveItem(item);
-    return ids.length>0 && ids.every(id=>getCompletionsForDate(selectedKey).includes(id));
+    const completionKey = item.instanceId || item.id;
+    return getCompletionsForDate(selectedKey).includes(completionKey);
   }).length;
   const pct=total>0?Math.round(doneCount/total*100):0;
 
   const handleToggle=(item:TodayItem)=>{
-    const {ids}=resolveItem(item);
-    if(ids.length===0) return;
+    // instanceId를 키로 써서 같은 기도문의 다른 시간대 항목을 독립적으로 체크
+    const completionKey = item.instanceId || item.id;
     const log=getCompletionsForDate(selectedKey);
-    const allDone=ids.every(id=>log.includes(id));
-    ids.forEach(id=>{
-      const isDone=log.includes(id);
-      if(allDone&&isDone) toggleCompletion(selectedKey,id);
-      if(!allDone&&!isDone) toggleCompletion(selectedKey,id);
-    });
+    const isDone=log.includes(completionKey);
+    toggleCompletion(selectedKey, completionKey);
   };
 
   // 항목 클릭: 기도문이면 바로 모달, 그룹이면 기도 목록 모달
@@ -142,7 +169,10 @@ const HomePage: React.FC = () => {
   const getDotType=(date:number)=>{
     const log=getCompletionsForDate(toKey(calYear,calMonth,date));
     if(!log.length||!total) return null;
-    const n=displayItems.filter(item=>resolveItem(item).ids.every(id=>log.includes(id))).length;
+    const n=displayItems.filter(item=>{
+      const completionKey = item.instanceId || item.id;
+      return log.includes(completionKey);
+    }).length;
     if(n===0) return null;
     if(n>=total) return 'full';
     if(n>=Math.ceil(total/2)) return 'half';
@@ -152,11 +182,12 @@ const HomePage: React.FC = () => {
   const openEditor=()=>{setEditList([...todayList]);setShowEditor(true);};
   const openPicker=()=>{setPickerSearch('');setPickerTab('prayer');setShowPicker(true);};
   const addToList=(id:string,type:'prayer'|'group')=>{
-    if(editList.find(x=>x.id===id)) return;
-    setEditList(prev=>[...prev,{id,type,time:'09:00',days:[]}]);
+    // instanceId로 같은 기도문의 여러 항목을 구분
+    const instanceId = `${id}_${Date.now()}`;
+    setEditList(prev=>[...prev,{id,instanceId,type,time:'09:00',days:[]}]);
     setShowPicker(false);
   };
-  const removeItem=(id:string)=>setEditList(prev=>prev.filter(x=>x.id!==id));
+  const removeItem=(instanceId:string)=>setEditList(prev=>prev.filter(x=>x.instanceId!==instanceId));
   const moveUp=(idx:number)=>setEditList(prev=>{const a=[...prev];if(idx===0)return a;[a[idx-1],a[idx]]=[a[idx],a[idx-1]];return a;});
   const moveDown=(idx:number)=>setEditList(prev=>{const a=[...prev];if(idx===a.length-1)return a;[a[idx],a[idx+1]]=[a[idx+1],a[idx]];return a;});
   const updateTime=(idx:number,time:string)=>setEditList(prev=>prev.map((x,i)=>i===idx?{...x,time}:x));
@@ -203,7 +234,8 @@ const HomePage: React.FC = () => {
         ):displayItems.map(item=>{
           const {title,color,ids}=resolveItem(item);
           const log=getCompletionsForDate(selectedKey);
-          const isDone=ids.length>0&&ids.every(id=>log.includes(id));
+          const completionKey = item.instanceId || item.id;
+          const isDone=log.includes(completionKey);
           return(
             <div key={item.id} className={`home-item ${isDone?'home-item--done':''}`}>
               {/* 왼쪽: 클릭하면 기도문 모달 */}
@@ -302,14 +334,21 @@ const HomePage: React.FC = () => {
                           <div className="hm-item__bottom">
                             <div className="hm-item__time-wrap">
                               <span className="hm-item__time-icon">⏰</span>
-                              <input type="time" value={item.time} className="hm-item__time" onChange={e=>updateTime(idx,e.target.value)}/>
+                              <button className="hm-item__time-btn" onClick={()=>setTimePickerIdx(idx)}>
+                                {(() => {
+                                  const [hh,mm] = item.time.split(':').map(Number);
+                                  const period = hh >= 12 ? '오후' : '오전';
+                                  const h12 = hh === 0 ? 12 : hh > 12 ? hh - 12 : hh;
+                                  return `${period} ${h12}:${String(mm).padStart(2,'0')}`;
+                                })()}
+                              </button>
                             </div>
                           </div>
                         </div>
                         <div className="hm-item__controls">
                           <button className="hm-item__move" onClick={()=>moveUp(idx)} disabled={idx===0}>↑</button>
                           <button className="hm-item__move" onClick={()=>moveDown(idx)} disabled={idx===editList.length-1}>↓</button>
-                          <button className="hm-item__remove" onClick={()=>removeItem(item.id)}>✕</button>
+                          <button className="hm-item__remove" onClick={()=>removeItem(item.instanceId)}>✕</button>
                         </div>
                       </div>
                     );
@@ -351,15 +390,17 @@ const HomePage: React.FC = () => {
                 filteredPrayers.length===0
                   ?<div className="hm-picker-empty">검색 결과가 없습니다</div>
                   :filteredPrayers.map(p=>{
-                    const already=!!editList.find(x=>x.id===p.id);
+                    const addedCount=editList.filter(x=>x.id===p.id).length;
                     return(
-                      <button key={p.id} className={`hm-picker-item ${already?'hm-picker-item--added':''}`} onClick={()=>addToList(p.id,'prayer')} disabled={already}>
+                      <button key={p.id} className="hm-picker-item" onClick={()=>addToList(p.id,'prayer')}>
                         <div className="hm-picker-item__dot" style={{background:catColor(p.category)}}/>
                         <div className="hm-picker-item__info">
                           <div className="hm-picker-item__title">{p.title}</div>
-                          <div className="hm-picker-item__cat">{p.category}</div>
+                          <div className="hm-picker-item__cat">
+                            {p.category}{addedCount > 0 ? ` · ${addedCount}개 추가됨` : ''}
+                          </div>
                         </div>
-                        <span className="hm-picker-item__action">{already?'✓':'+'}</span>
+                        <span className="hm-picker-item__action">+</span>
                       </button>
                     );
                   })
@@ -368,15 +409,17 @@ const HomePage: React.FC = () => {
                 filteredGroups.length===0
                   ?<div className="hm-picker-empty">{groups.length===0?'그룹 탭에서 먼저 그룹을 만들어주세요':'검색 결과가 없습니다'}</div>
                   :filteredGroups.map(g=>{
-                    const already=!!editList.find(x=>x.id===g.id);
+                    const addedCount=editList.filter(x=>x.id===g.id).length;
                     return(
-                      <button key={g.id} className={`hm-picker-item ${already?'hm-picker-item--added':''}`} onClick={()=>addToList(g.id,'group')} disabled={already}>
+                      <button key={g.id} className="hm-picker-item" onClick={()=>addToList(g.id,'group')}>
                         <div className="hm-picker-item__dot" style={{background:g.color}}/>
                         <div className="hm-picker-item__info">
                           <div className="hm-picker-item__title">{g.name}</div>
-                          <div className="hm-picker-item__cat">{g.prayerIds.length}개 기도문</div>
+                          <div className="hm-picker-item__cat">
+                            {g.prayerIds.length}개 기도문{addedCount > 0 ? ` · ${addedCount}개 추가됨` : ''}
+                          </div>
                         </div>
-                        <span className="hm-picker-item__action">{already?'✓':'+'}</span>
+                        <span className="hm-picker-item__action">+</span>
                       </button>
                     );
                   })
@@ -384,6 +427,15 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── 시간 선택기 ── */}
+      {timePickerIdx !== null && (
+        <TimePicker
+          value={editList[timePickerIdx]?.time ?? '09:00'}
+          onChange={time => updateTime(timePickerIdx, time)}
+          onClose={() => setTimePickerIdx(null)}
+        />
       )}
     </div>
   );

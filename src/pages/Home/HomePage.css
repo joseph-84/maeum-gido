@@ -163,3 +163,46 @@
 .hm-group-prayer-btn__title { font-size:14px; color:#1a1a1a; }
 .hm-group-prayer-btn__cat   { font-size:11px; color:#aaa; margin-top:2px; }
 .hm-group-prayer-btn__arrow { font-size:18px; color:#bbb; flex-shrink:0; }
+
+/* 시간 선택 버튼 (input type=time 대체) */
+.hm-item__time-btn {
+  border: none;
+  background: #f0f0ec;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #2D5016;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.hm-item__time-btn:hover { background: #e8f0e0; }
+
+/* 모달 배경 스크롤 잠금 */
+.hm-bg {
+  overscroll-behavior: contain;
+  touch-action: none;
+}
+
+/* 모달 시트 내부만 스크롤 허용 */
+.hm-sheet {
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  overflow-y: auto;
+}
+
+/* 기도문 내용 스크롤 */
+.hm-prayer-content {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  max-height: 60vh;
+}
+
+/* 그룹 기도 목록 스크롤 */
+.hm-group-list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}

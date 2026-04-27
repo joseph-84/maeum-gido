@@ -38,7 +38,11 @@ export function getCompletions(): Record<string, string[]> { return get<Record<s
 export function saveCompletions(log: Record<string, string[]>): void { set(KEYS.COMPLETIONS, log); }
 
 export interface TodayItem {
-  id: string; type: 'prayer'|'group'; time: string; days: number[];
+  id: string;
+  instanceId: string; // 같은 기도문을 여러 번 추가할 때 구분하는 고유 ID
+  type: 'prayer'|'group';
+  time: string;
+  days: number[];
 }
 export function getTodayList(): TodayItem[] { return get<TodayItem[]>(KEYS.TODAY_LIST) ?? []; }
 export function saveTodayList(list: TodayItem[]): void { set(KEYS.TODAY_LIST, list); }

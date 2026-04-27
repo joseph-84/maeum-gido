@@ -15,22 +15,33 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 뒤로 버튼 처리
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                long currentTime = System.currentTimeMillis();
-                // 2초 안에 두 번 누르면 종료
-                if (currentTime - backPressedTime < 2000) {
-                    finishAffinity(); // 앱 완전 종료
-                } else {
-                    backPressedTime = currentTime;
-                    // 토스트 메시지로 안내
-                    android.widget.Toast.makeText(
-                        MainActivity.this,
-                        "뒤로 버튼을 한 번 더 누르면 종료됩니다",
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show();
+                if (getBridge() != null && getBridge().getWebView() != null) {
+                    getBridge().getWebView().post(() ->
+                        getBridge().getWebView().evaluateJavascript(
+                            // hasOpenModal() 결과를 반환받아 분기
+                            "(function(){ window.dispatchEvent(new CustomEvent('app-back-press')); return window.__hasOpenModal ? window.__hasOpenModal() : false; })()",
+                            result -> {
+                                if (!"true".equals(result)) {
+                                    runOnUiThread(() -> {
+                                        long now = System.currentTimeMillis();
+                                        if (now - backPressedTime < 2000) {
+                                            finishAffinity();
+                                        } else {
+                                            backPressedTime = now;
+                                            android.widget.Toast.makeText(
+                                                MainActivity.this,
+                                                "뒤로 버튼을 한 번 더 누르면 종료됩니다",
+                                                android.widget.Toast.LENGTH_SHORT
+                                            ).show();
+                                        }
+                                    });
+                                }
+                            }
+                        )
+                    );
                 }
             }
         });
@@ -39,7 +50,6 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onResume() {
         super.onResume();
-
         getWindow().getDecorView().post(() -> {
             ViewCompat.setOnApplyWindowInsetsListener(
                 getWindow().getDecorView(),
@@ -47,24 +57,16 @@ public class MainActivity extends BridgeActivity {
                     int navBarHeight = windowInsets
                         .getInsets(WindowInsetsCompat.Type.navigationBars())
                         .bottom;
-
                     Log.d(TAG, "navBarHeight: " + navBarHeight);
-
                     String js = String.format(
                         "document.documentElement.style.setProperty('--nav-bar-height', '%dpx');",
                         navBarHeight
                     );
-
                     if (getBridge() != null && getBridge().getWebView() != null) {
-                        getBridge().getWebView().post(() -> {
-                            getBridge().getWebView().evaluateJavascript(js, result -> {
-                                Log.d(TAG, "CSS 변수 주입 완료: --nav-bar-height=" + navBarHeight + "px");
-                            });
-                        });
-                    } else {
-                        Log.w(TAG, "WebView가 아직 준비되지 않음");
+                        getBridge().getWebView().post(() ->
+                            getBridge().getWebView().evaluateJavascript(js, null)
+                        );
                     }
-
                     return WindowInsetsCompat.CONSUMED;
                 }
             );
