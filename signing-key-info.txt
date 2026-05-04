@@ -1,0 +1,5 @@
+- ReleaseAPK 위치 : D:\maeum-gido\.claude\worktrees\exciting-goldberg-14da2d\android\app\build\outputs\apk\release
+- 서명키
+키스토어: D:\maeum-gido\android\app\maeum-gido-release.jks
+비밀번호: maeum1234
+키 별칭:  maeum-gido

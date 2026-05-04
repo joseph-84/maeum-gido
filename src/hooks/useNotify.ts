@@ -1,11 +1,9 @@
-// ============================================================
-// hooks/useNotify.ts — Capacitor LocalNotifications 기반 알림
-// ============================================================
-import { useEffect, useCallback, useRef } from 'react';
-import { TodayItem } from '../utils/storage';
+import { useCallback, useEffect, useRef } from 'react';
+import type { TodayItem } from '../utils/storage';
 
-// ── Capacitor 환경 감지 ──────────────────────────────────────
-// window.Capacitor.isNativePlatform() 이 가장 확실한 방법
+const CHANNEL_ID = 'prayer-alarm';
+const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
+
 function isNative(): boolean {
   try {
     const cap = (window as any).Capacitor;
@@ -15,7 +13,6 @@ function isNative(): boolean {
   }
 }
 
-// ── 알림 시각 계산 ───────────────────────────────────────────
 function nextTriggerDate(dow: number, hour: number, minute: number): Date {
   const now = new Date();
   const target = new Date();
@@ -26,46 +23,73 @@ function nextTriggerDate(dow: number, hour: number, minute: number): Date {
   return target;
 }
 
-// 아이템 ID → 정수 알림 ID 변환
-function toNotifId(itemId: string, index: number): number {
+function toNotifId(item: TodayItem, index: number): number {
+  const key = item.instanceId || item.id;
   let hash = 0;
-  for (let i = 0; i < itemId.length; i++) {
-    hash = (hash * 31 + itemId.charCodeAt(i)) | 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 31 + key.charCodeAt(i)) | 0;
   }
   return (Math.abs(hash) % 2_000_000) + index;
 }
 
-// ── Capacitor 채널 초기화 ────────────────────────────────────
+function toCapacitorWeekday(dow: number): number {
+  return dow + 1;
+}
+
 async function setupChannel(): Promise<void> {
   const { LocalNotifications } = await import('@capacitor/local-notifications');
   await LocalNotifications.createChannel({
-    id: 'prayer-alarm',
+    id: CHANNEL_ID,
     name: '기도 알림',
     description: '기도 시간을 알려주는 알림',
-    importance: 5,       // IMPORTANCE_HIGH
+    importance: 5,
     vibration: true,
     sound: 'default',
     lights: true,
     lightColor: '#2D5016',
-    visibility: 1,       // VISIBILITY_PUBLIC
+    visibility: 1,
   });
 }
 
-// ── Capacitor 권한 요청 ──────────────────────────────────────
+async function checkExactAlarmPermission(): Promise<boolean> {
+  const { LocalNotifications } = await import('@capacitor/local-notifications');
+  try {
+    const { exact_alarm } = await LocalNotifications.checkExactNotificationSetting();
+    return exact_alarm === 'granted';
+  } catch {
+    return true;
+  }
+}
+
 async function requestNativePermission(): Promise<boolean> {
   const { LocalNotifications } = await import('@capacitor/local-notifications');
   const { display } = await LocalNotifications.requestPermissions();
-  return display === 'granted';
+  if (display !== 'granted') return false;
+
+  try {
+    const { exact_alarm } = await LocalNotifications.checkExactNotificationSetting();
+    if (exact_alarm !== 'granted') {
+      const result = await LocalNotifications.changeExactNotificationSetting();
+      return result.exact_alarm === 'granted';
+    }
+  } catch (e) {
+    console.warn('[useNotify] Exact alarm permission check error:', e);
+  }
+
+  return true;
 }
 
-// ── Capacitor 알림 전체 재스케줄 ────────────────────────────
 async function scheduleNativeAll(
   todayList: TodayItem[],
   getTitle: (item: TodayItem) => string
 ): Promise<void> {
   const { LocalNotifications } = await import('@capacitor/local-notifications');
 
-  // 기존 알림 모두 취소
+  const exactAlarmGranted = await checkExactAlarmPermission();
+  if (!exactAlarmGranted) {
+    console.warn('[useNotify] Exact alarm permission is not granted. Android may delay notifications.');
+  }
+
   const { notifications: pending } = await LocalNotifications.getPending();
   if (pending.length > 0) {
     await LocalNotifications.cancel({ notifications: pending });
@@ -78,36 +102,41 @@ async function scheduleNativeAll(
     const [hStr, mStr] = item.time.split(':');
     const hour = Number(hStr);
     const minute = Number(mStr);
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) continue;
+
     const body = getTitle(item);
+    const targetDays = item.days.length === 0 ? ALL_DAYS : item.days;
 
-    const targetDays = item.days.length === 0
-      ? [0, 1, 2, 3, 4, 5, 6]
-      : item.days;
-
-    targetDays.forEach((dow, i) => {
+    targetDays.forEach((dow, index) => {
       notifications.push({
-        id: toNotifId(item.id, i),
-        title: '🙏 기도 시간입니다',
+        id: toNotifId(item, index),
+        title: '기도 시간입니다',
         body,
-        channelId: 'prayer-alarm',
+        channelId: CHANNEL_ID,
         schedule: {
-          at: nextTriggerDate(dow, hour, minute),
-          every: 'week',
+          on: {
+            weekday: toCapacitorWeekday(dow),
+            hour,
+            minute,
+          },
           allowWhileIdle: true,
         },
         sound: 'default',
-        extra: { itemId: item.id },
+        extra: {
+          itemId: item.id,
+          instanceId: item.instanceId,
+          type: item.type,
+        },
       });
     });
   }
 
   if (notifications.length > 0) {
     await LocalNotifications.schedule({ notifications });
-    console.info(`[useNotify] ${notifications.length}개 알림 등록 완료`);
+    console.info(`[useNotify] Scheduled ${notifications.length} notification(s)`);
   }
 }
 
-// ── 웹 브라우저 알림 (개발/미리보기용) ──────────────────────
 function scheduleWebAll(
   todayList: TodayItem[],
   getTitle: (item: TodayItem) => string
@@ -126,13 +155,12 @@ function scheduleWebAll(
 
     const body = getTitle(item);
     timers.push(setTimeout(() => {
-      new Notification('🙏 기도 시간입니다', { body, icon: '/favicon.ico' });
+      new Notification('기도 시간입니다', { body, icon: '/favicon.ico' });
     }, msUntil));
   }
   return timers;
 }
 
-// ── 훅 본체 ─────────────────────────────────────────────────
 export function useNotify(
   todayList: TodayItem[],
   getTitle: (item: TodayItem) => string
@@ -140,7 +168,6 @@ export function useNotify(
   const ready = useRef(false);
   const webTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // 권한 요청 (설정 화면에서 호출)
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (isNative()) {
       return requestNativePermission();
@@ -150,7 +177,6 @@ export function useNotify(
     return result === 'granted';
   }, []);
 
-  // 알림 전체 재스케줄
   const scheduleAll = useCallback(async () => {
     if (isNative()) {
       await scheduleNativeAll(todayList, getTitle);
@@ -160,7 +186,6 @@ export function useNotify(
     }
   }, [todayList, getTitle]);
 
-  // 앱 최초 실행: 채널 생성 + 권한 요청 + 알림 등록
   useEffect(() => {
     if (ready.current) return;
     ready.current = true;
@@ -169,24 +194,21 @@ export function useNotify(
       if (isNative()) {
         try {
           await setupChannel();
-          const granted = await requestNativePermission();
-          if (granted) await scheduleNativeAll(todayList, getTitle);
+          await scheduleNativeAll(todayList, getTitle);
         } catch (e) {
           console.warn('[useNotify] Native init error:', e);
         }
-      } else {
-        // 브라우저: 이미 권한 있으면 바로 등록
-        if ('Notification' in window && Notification.permission === 'granted') {
-          webTimers.current = scheduleWebAll(todayList, getTitle);
-        }
+      } else if ('Notification' in window && Notification.permission === 'granted') {
+        webTimers.current = scheduleWebAll(todayList, getTitle);
       }
     })();
 
-    return () => { webTimers.current.forEach(clearTimeout); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      webTimers.current.forEach(clearTimeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // todayList 변경 시 재스케줄
   useEffect(() => {
     if (!ready.current) return;
     scheduleAll();

@@ -83,10 +83,21 @@ const SettingsPage: React.FC = () => {
       try {
         const { LocalNotifications } = await import('@capacitor/local-notifications');
         const { display } = await LocalNotifications.requestPermissions();
-        if (display === 'granted') {
-          showToast('알림 권한이 허용되었습니다. 기도 시간에 알림이 옵니다.');
-        } else {
+        if (display !== 'granted') {
           showToast('알림 권한이 거부되었습니다. 설정 → 앱 → 마음의 기도 → 알림에서 허용해주세요.');
+          return;
+        }
+
+        const { exact_alarm } = await LocalNotifications.checkExactNotificationSetting();
+        if (exact_alarm !== 'granted') {
+          const result = await LocalNotifications.changeExactNotificationSetting();
+          if (result.exact_alarm === 'granted') {
+            showToast('알림 권한이 허용되었습니다. 기도 시간에 알림이 옵니다.');
+          } else {
+            showToast('알람 및 리마인더 권한이 꺼져 있어 알림이 늦거나 누락될 수 있습니다.');
+          }
+        } else {
+          showToast('알림 권한이 허용되었습니다. 기도 시간에 알림이 옵니다.');
         }
       } catch (e) {
         showToast('알림 설정 중 오류가 발생했습니다.');

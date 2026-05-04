@@ -19,7 +19,7 @@
 //   - 앱 포그라운드 복귀 시 스케줄 재확인 (App 플러그인 이용)
 // ============================================================
 
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Redirect, Route, useLocation } from 'react-router-dom';
 import {
   IonApp,
@@ -53,7 +53,8 @@ const SettingsPage = lazy(() => import('./pages/Settings/SettingsPage'));
 
 /* ── 훅 ── */
 import { useAppData, AppContext } from './hooks/useAppData';
-import { useNotifications } from './hooks/useNotifications';
+import { useNotify } from './hooks/useNotify';
+import type { TodayItem } from './utils/storage';
 import { handleBackPress, hasOpenModal } from './utils/backHandler';
 
 /* ── Ionic + Capacitor 스타일 ── */
@@ -123,24 +124,36 @@ const AppTabs: React.FC = () => {
 // ─── 앱 본체 ────────────────────────────────────────────────
 const App: React.FC = () => {
   const appData = useAppData();
-  const { rescheduleAll } = useNotifications();
+  const getNotificationTitle = useCallback(
+    (item: TodayItem) => {
+      if (item.type === 'prayer') {
+        return appData.prayers.find((p) => p.id === item.id)?.title ?? '기도';
+      }
+
+      return appData.groups.find((g) => g.id === item.id)?.name ?? '기도 모임';
+    },
+    [appData.prayers, appData.groups]
+  );
+  const { scheduleAll } = useNotify(
+    appData.isLoading ? [] : appData.todayList,
+    getNotificationTitle
+  );
 
   // ── 앱 시작 시 알림 재등록 ──────────────────────────────
   useEffect(() => {
     if (appData.isLoading) return;
-    rescheduleAll([], () => '기도').catch(console.error);
-  }, [appData.isLoading]); // 초기 로드 완료 시 1회 실행
+    scheduleAll().catch(console.error);
+  }, [appData.isLoading, scheduleAll]); // 초기 로드 완료 시 1회 실행
 
   // ── 앱 포그라운드 복귀 시 스케줄 상태 갱신 ──────────────
   useEffect(() => {
     const listener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
       if (isActive) {
-        // 포그라운드 복귀: 필요 시 완료 기록 갱신 등 처리 가능
-        console.info('[App] 앱 포그라운드 복귀');
+        scheduleAll().catch(console.error);
       }
     });
     return () => { listener.then((l) => l.remove()); };
-  }, []);
+  }, [scheduleAll]);
 
   // ── 안드로이드 백 버튼 처리 ─────────────────────────────
   useEffect(() => {
@@ -155,6 +168,44 @@ const App: React.FC = () => {
       }
     });
     return () => { listener.then((l) => l.remove()); };
+  }, []);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
+    const updateKeyboardOffset = () => {
+      const keyboardOffset = Math.max(
+        0,
+        window.innerHeight - viewport.height - viewport.offsetTop
+      );
+      document.documentElement.style.setProperty('--keyboard-offset', `${keyboardOffset}px`);
+    };
+
+    const scrollFocusedField = () => {
+      window.setTimeout(() => {
+        const active = document.activeElement;
+        if (
+          active instanceof HTMLInputElement ||
+          active instanceof HTMLTextAreaElement ||
+          active instanceof HTMLSelectElement
+        ) {
+          active.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+        }
+      }, 120);
+    };
+
+    updateKeyboardOffset();
+    viewport.addEventListener('resize', updateKeyboardOffset);
+    viewport.addEventListener('scroll', updateKeyboardOffset);
+    document.addEventListener('focusin', scrollFocusedField);
+
+    return () => {
+      viewport.removeEventListener('resize', updateKeyboardOffset);
+      viewport.removeEventListener('scroll', updateKeyboardOffset);
+      document.removeEventListener('focusin', scrollFocusedField);
+      document.documentElement.style.removeProperty('--keyboard-offset');
+    };
   }, []);
 
   return (
