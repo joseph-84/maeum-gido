@@ -1,10 +1,26 @@
-import { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import { useState, useEffect, useCallback, useMemo, createContext, useContext } from 'react';
 import {
   StoredPrayer, StoredGroup, TodayItem,
   getPrayers, savePrayers, getGroups, saveGroups,
   getCompletions, saveCompletions, getTodayList, saveTodayList,
-  mergeStaticPrayers,
+  mergeStaticPrayers, BIBLE_PRAYER_IDS,
 } from '../utils/storage';
+
+/** 매일 성경 가상 기도문 — localStorage에 저장되지 않음 */
+const BIBLE_VIRTUAL_PRAYERS: StoredPrayer[] = [
+  {
+    id: 'bible-reading', title: '오늘의 독서', content: '',
+    category: '매일성경', source: 'bible',
+    isFavorite: false, isDeleted: false,
+    createdAt: '2020-01-01T00:00:00.000Z', updatedAt: '2020-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'bible-gospel', title: '오늘의 복음', content: '',
+    category: '매일성경', source: 'bible',
+    isFavorite: false, isDeleted: false,
+    createdAt: '2020-01-01T00:00:00.000Z', updatedAt: '2020-01-01T00:00:00.000Z',
+  },
+];
 import staticJson from '../assets/prayers.json';
 import { syncPrayersFromServer } from '../utils/prayerSync';
 
@@ -132,6 +148,7 @@ export function useAppData(): AppData {
   }, []);
 
   const deletePrayer = useCallback((id: string) => {
+    if (BIBLE_PRAYER_IDS.includes(id as any)) return; // 가상 기도문 삭제 방지
     setPrayers(prev => {
       const next = prev.filter(p => p.id !== id);
       const all  = getPrayers();
@@ -180,8 +197,14 @@ export function useAppData(): AppData {
 
   const getCompletionsForDate = useCallback((date: string) => completions[date] ?? [], [completions]);
 
+  // 가상 Bible 기도문을 앞에 항상 포함 (localStorage에 저장 안 됨)
+  const prayersWithBible = useMemo(
+    () => [...BIBLE_VIRTUAL_PRAYERS, ...prayers],
+    [prayers]
+  );
+
   return {
-    prayers, groups, todayList, completions, isLoading,
+    prayers: prayersWithBible, groups, todayList, completions, isLoading,
     addPrayer, updatePrayer, deletePrayer, toggleFavorite,
     addGroup, updateGroup, deleteGroup,
     setTodayList,

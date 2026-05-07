@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import TimePicker from '../../components/TimePicker';
 import { useAppContext } from '../../hooks/useAppData';
 import { registerBackHandler } from '../../utils/backHandler';
-import { TodayItem, StoredPrayer } from '../../utils/storage';
+import { TodayItem, StoredPrayer, BIBLE_PRAYER_IDS } from '../../utils/storage';
+import { useDailyBible, buildBibleUrl, todayKSTString } from '../../hooks/useDailyBible';
 import './HomePage.css';
 
 const DAYS_LABEL = ['일','월','화','수','목','금','토'];
@@ -25,6 +26,38 @@ interface PrayerModalProps {
   prayer: StoredPrayer;
   onClose: () => void;
 }
+// 매일 성경 기도문용 내용 컴포넌트
+const BiblePrayerContent: React.FC<{ prayerId: string }> = ({ prayerId }) => {
+  const { data, loading, error, retry } = useDailyBible();
+  if (loading) return <div className="hm-prayer-content" style={{textAlign:'center',color:'#999'}}>불러오는 중…</div>;
+  if (error || !data) return (
+    <div className="hm-prayer-content" style={{textAlign:'center'}}>
+      <div style={{color:'#999',marginBottom:10}}>불러오지 못했습니다</div>
+      <button onClick={retry} style={{background:'#2D5016',color:'#fff',border:'none',borderRadius:20,padding:'8px 20px',fontFamily:'Noto Sans KR',cursor:'pointer',fontSize:13}}>다시 시도</button>
+    </div>
+  );
+  const isGospel = prayerId === 'bible-gospel';
+  const section = isGospel ? data.gospel : (data.readings.length > 0 ? {
+    book: data.readings[0].book,
+    content: data.readings.map(r => data.readings.length > 1 ? `【${r.title}】\n${r.content}` : r.content).join('\n\n'),
+  } : null);
+  if (!section?.content) return (
+    <div className="hm-prayer-content" style={{textAlign:'center',color:'#999'}}>
+      내용을 파싱하지 못했습니다.<br/>
+      <a href={buildBibleUrl(todayKSTString())} target="_blank" rel="noopener noreferrer" style={{color:'#2D5016',fontSize:13}}>원문 보기 ↗</a>
+    </div>
+  );
+  return (
+    <div className="hm-prayer-content">
+      {section.book && <div style={{fontSize:13,color:'#888',marginBottom:10}}>{section.book}</div>}
+      <div style={{whiteSpace:'pre-wrap'}}>{section.content}</div>
+      <div style={{marginTop:16,textAlign:'center'}}>
+        <a href={buildBibleUrl(todayKSTString())} target="_blank" rel="noopener noreferrer" style={{fontSize:12,color:'#aaa',textDecoration:'none'}}>가톨릭 굿뉴스 원문 보기 ↗</a>
+      </div>
+    </div>
+  );
+};
+
 const PrayerModal: React.FC<PrayerModalProps> = ({ prayer, onClose }) => (
   <div className="hm-bg" onClick={onClose}>
     <div className="hm-sheet" onClick={e=>e.stopPropagation()} style={{maxHeight:'80vh'}}>
@@ -36,7 +69,10 @@ const PrayerModal: React.FC<PrayerModalProps> = ({ prayer, onClose }) => (
         </div>
         <button className="hm-head__close" onClick={onClose}>✕</button>
       </div>
-      <div className="hm-prayer-content">{prayer.content.replace(/\\n/g, '\n')}</div>
+      {prayer.source === 'bible'
+        ? <BiblePrayerContent prayerId={prayer.id} />
+        : <div className="hm-prayer-content">{prayer.content.replace(/\\n/g, '\n')}</div>
+      }
       <div className="hm-footer">
         <button className="hm-footer__close" onClick={onClose}>닫기</button>
       </div>
@@ -320,18 +356,22 @@ const HomePage: React.FC = () => {
               ):(
                 <div className="hm-items">
                   {editList.map((item,idx)=>{
-                    const label=item.type==='prayer'
-                      ?prayers.find(p=>p.id===item.id)?.title??'(없음)'
-                      :groups.find(g=>g.id===item.id)?.name??'(없음)';
-                    const color=item.type==='prayer'
-                      ?catColor(prayers.find(p=>p.id===item.id)?.category??'')
-                      :groups.find(g=>g.id===item.id)?.color??'#9B4A9B';
+                    const isBibleItem = (item.id==='bible-reading'||item.id==='bible-gospel');
+                    const label= isBibleItem
+                      ?(item.id==='bible-gospel'?'오늘의 복음':'오늘의 독서')
+                      :item.type==='prayer'
+                        ?prayers.find(p=>p.id===item.id)?.title??'(없음)'
+                        :groups.find(g=>g.id===item.id)?.name??'(없음)';
+                    const color= isBibleItem?'#2D5016'
+                      :item.type==='prayer'
+                        ?catColor(prayers.find(p=>p.id===item.id)?.category??'')
+                        :groups.find(g=>g.id===item.id)?.color??'#9B4A9B';
                     return(
                       <div key={item.id} className="hm-item">
                         <div className="hm-item__color-bar" style={{background:color}}/>
                         <div className="hm-item__content">
                           <div className="hm-item__top">
-                            <span className={`hm-item__tag hm-item__tag--${item.type}`}>{item.type==='group'?'그룹':'기도'}</span>
+                            <span className={`hm-item__tag hm-item__tag--${isBibleItem?'bible':item.type}`}>{isBibleItem?'성경':item.type==='group'?'그룹':'기도'}</span>
                             <span className="hm-item__label">{label}</span>
                           </div>
                           <div className="hm-item__bottom">

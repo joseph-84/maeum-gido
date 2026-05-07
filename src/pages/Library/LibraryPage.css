@@ -11,7 +11,7 @@
 /* 헤더 */
 .lib-header {
   background: #2D5016;
-  padding: 48px 20px 0;
+  padding: 20px 20px 0;
 }
 .lib-header__title {
   color: #fff;
@@ -275,3 +275,125 @@
 .lib-form__select:focus,
 .lib-form__textarea:focus { border-color: #2D5016; }
 .lib-form__textarea { resize: vertical; line-height: 1.7; }
+
+/* ── 매일 성경 탭 ─────────────────────────────────────────────────────── */
+.bible-tab {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bible-date {
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+  padding: 4px 0;
+}
+
+/* 카드 */
+.bible-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.bible-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 16px 10px;
+  cursor: pointer;
+}
+
+.bible-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.bible-card__icon  { font-size: 18px; flex-shrink: 0; }
+.bible-card__title { font-size: 16px; font-weight: 500; color: #1a1a1a; }
+.bible-card__book  {
+  font-size: 12px; color: #888;
+  background: #f4f3ef; border-radius: 8px;
+  padding: 2px 8px;
+}
+.bible-card__arrow { font-size: 12px; color: #bbb; flex-shrink: 0; padding-top: 4px; }
+
+.bible-card__preview {
+  font-size: 13px; color: #999; line-height: 1.6;
+  padding: 0 16px 12px;
+}
+
+.bible-card__content {
+  font-size: 14px; color: #333; line-height: 1.9;
+  white-space: pre-wrap;
+  padding: 0 16px 16px;
+  border-top: 0.5px solid rgba(0,0,0,0.06);
+  margin-top: 4px;
+  padding-top: 12px;
+}
+
+.bible-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 14px;
+  border-top: 0.5px solid rgba(0,0,0,0.06);
+}
+
+.bible-card__add-btn {
+  background: #2D5016;
+  color: #fff;
+  border: none; border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 13px; font-weight: 500;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.bible-card__add-btn--added {
+  background: #e0edda;
+  color: #2D5016;
+  cursor: default;
+}
+.bible-card__link {
+  font-size: 12px; color: #aaa;
+  text-decoration: none;
+}
+.bible-card__link:hover { color: #2D5016; }
+
+/* 상태 (로딩/에러) */
+.bible-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 20px;
+  text-align: center;
+}
+.bible-status__icon { font-size: 40px; }
+.bible-status__text { font-size: 14px; color: #999; line-height: 1.6; }
+
+.bible-retry-btn {
+  background: #2D5016; color: #fff;
+  border: none; border-radius: 20px;
+  padding: 10px 24px;
+  font-size: 14px; font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer; text-decoration: none;
+  display: inline-block;
+}
+
+/* 스피너 */
+.bible-spinner {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 3px solid #e0edda;
+  border-top-color: #2D5016;
+  animation: bible-spin 0.8s linear infinite;
+}
+@keyframes bible-spin { to { transform: rotate(360deg); } }

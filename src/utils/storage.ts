@@ -20,9 +20,13 @@ function remove(key: string): void { localStorage.removeItem(key); }
 
 export interface StoredPrayer {
   id: string; title: string; content: string; category: string;
-  isFavorite: boolean; isDeleted: boolean; source: 'static'|'user';
+  isFavorite: boolean; isDeleted: boolean; source: 'static'|'user'|'bible';
   createdAt: string; updatedAt: string;
 }
+
+/** 매일 성경 가상 기도문 ID */
+export const BIBLE_PRAYER_IDS = ['bible-reading', 'bible-gospel'] as const;
+export type BiblePrayerId = typeof BIBLE_PRAYER_IDS[number];
 export function getPrayers(): StoredPrayer[] { return get<StoredPrayer[]>(KEYS.PRAYERS) ?? []; }
 export function savePrayers(prayers: StoredPrayer[]): void { set(KEYS.PRAYERS, prayers); }
 
@@ -41,6 +45,7 @@ export interface TodayItem {
   id: string;
   instanceId: string; // 같은 기도문을 여러 번 추가할 때 구분하는 고유 ID
   type: 'prayer'|'group';
+  // 매일 성경: type='prayer', id='bible-reading'|'bible-gospel'
   time: string;
   days: number[];
 }
