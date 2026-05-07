@@ -28,20 +28,33 @@ async function shareText(title: string, text: string) {
 }
 
 // 파일 저장 (로컬 내보내기)
-// - 네이티브: Filesystem.External (앱 외부저장소, 파일관리자에서 접근 가능)
+// - 네이티브: Cache에 쓰고 Share 시트로 저장 위치 선택
+//   (Android 11+ 에서는 앱이 Downloads 폴더에 직접 쓸 수 없음 — OS 보안 정책)
 // - 웹: <a download> blob 방식
-async function saveFileToDevice(json: string, filename: string): Promise<string | null> {
+async function saveFileNative(json: string, filename: string) {
+  const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
+  const { Share } = await import('@capacitor/share');
+  const { uri } = await Filesystem.writeFile({
+    path: filename,
+    data: json,
+    directory: Directory.Cache,
+    encoding: Encoding.UTF8,
+  });
+  await Share.share({
+    title: '마음의 기도 백업',
+    files: [uri],
+    dialogTitle: '저장 위치 선택',
+  });
+}
+
+// 클립보드 읽기 (Capacitor 전용)
+async function readClipboard(): Promise<string> {
   if (isNativePlatform()) {
-    const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
-    const result = await Filesystem.writeFile({
-      path: filename,
-      data: json,
-      directory: Directory.External,   // /sdcard/Android/data/<pkg>/files/
-      encoding: Encoding.UTF8,
-    });
-    return result.uri ?? null;
+    const { Clipboard } = await import('@capacitor/clipboard');
+    const { value } = await Clipboard.read();
+    return value ?? '';
   }
-  return null;
+  return navigator.clipboard.readText();
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -72,7 +85,7 @@ const SettingsPage: React.FC = () => {
     setTimeout(() => setToast(''), 3000);
   };
 
-  // ── 로컬 내보내기 (기기 저장) ─────────────────────────────────
+  // ── 로컬 내보내기 ─────────────────────────────────────────────
   const handleExport = async () => {
     const data = {
       exportedAt: new Date().toISOString(),
@@ -83,9 +96,8 @@ const SettingsPage: React.FC = () => {
 
     try {
       if (isNativePlatform()) {
-        // 네이티브: 기기 외부저장소에 저장
-        await saveFileToDevice(json, filename);
-        showToast(`백업 파일이 저장되었습니다.\n(파일 관리자 > Android > data > files)`);
+        // 네이티브: 저장 위치 선택 시트 (Android 보안정책상 직접 다운로드 불가)
+        await saveFileNative(json, filename);
       } else {
         // 웹: blob 다운로드
         const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
@@ -97,7 +109,7 @@ const SettingsPage: React.FC = () => {
         showToast('백업 파일이 다운로드되었습니다.');
       }
     } catch (e: any) {
-      showToast('내보내기 중 오류가 발생했습니다.');
+      if ((e as any)?.name !== 'AbortError') showToast('내보내기 중 오류가 발생했습니다.');
     }
   };
 
@@ -428,7 +440,12 @@ const SettingsPage: React.FC = () => {
       {/* ── 서버 가져오기 모달 ───────────────────────────────────── */}
       {importModal && (
         <div className="set-modal-bg" onClick={() => { if (!importLoading) setImportModal(false); }}>
-          <div className="set-modal" onClick={e => e.stopPropagation()}>
+          <div
+            className="set-modal"
+            onClick={e => e.stopPropagation()}
+            onTouchStart={e => e.stopPropagation()}
+            onTouchEnd={e => e.stopPropagation()}
+          >
             <div className="set-modal__title">☁️ 서버에서 가져오기</div>
             <div className="set-modal__desc">서버 내보내기 시 받은 비밀번호를 입력하세요.</div>
             <div className="set-modal__input-row">
@@ -441,16 +458,18 @@ const SettingsPage: React.FC = () => {
                 maxLength={12}
                 autoCapitalize="characters"
                 onKeyDown={e => { if (e.key === 'Enter') handleServerImport(); }}
+                onContextMenu={e => e.preventDefault()}
                 disabled={importLoading}
               />
               <button
                 className="set-modal__paste-btn"
                 onClick={async () => {
                   try {
-                    const text = await navigator.clipboard.readText();
-                    setImportCode((text || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12));
+                    const text = await readClipboard();
+                    if (!text) { showToast('클립보드가 비어 있습니다.'); return; }
+                    setImportCode(text.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12));
                   } catch {
-                    showToast('클립보드에서 붙여넣기를 허용해주세요.');
+                    showToast('클립보드를 읽을 수 없습니다.');
                   }
                 }}
                 disabled={importLoading}
