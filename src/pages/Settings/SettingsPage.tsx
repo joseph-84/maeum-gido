@@ -28,11 +28,39 @@ async function shareText(title: string, text: string) {
 }
 
 // 파일 저장 (로컬 내보내기)
-// - 네이티브: Cache에 쓰고 Share 시트로 저장 위치 선택
-//   (Android 11+ 에서는 앱이 Downloads 폴더에 직접 쓸 수 없음 — OS 보안 정책)
-// - 웹: <a download> blob 방식
-async function saveFileNative(json: string, filename: string) {
+// 1차: 권한 요청 후 다운로드 폴더에 직접 저장 (Android 9 이하 or 권한 허용 시)
+// 2차: 앱 전용 외부저장소 (Android 10+, 파일관리자 접근 가능)
+// 3차: Share 시트 (최후 수단)
+async function saveFileNative(json: string, filename: string): Promise<'download'|'external'|'share'> {
   const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
+
+  // 권한 요청
+  try { await Filesystem.requestPermissions(); } catch {}
+
+  // 1차: ExternalStorage/Download/
+  try {
+    await Filesystem.writeFile({
+      path: `Download/${filename}`,
+      data: json,
+      directory: Directory.ExternalStorage,
+      encoding: Encoding.UTF8,
+      recursive: true,
+    });
+    return 'download';
+  } catch {}
+
+  // 2차: 앱 전용 외부저장소 (/sdcard/Android/data/<pkg>/files/)
+  try {
+    await Filesystem.writeFile({
+      path: filename,
+      data: json,
+      directory: Directory.External,
+      encoding: Encoding.UTF8,
+    });
+    return 'external';
+  } catch {}
+
+  // 3차: Share 시트
   const { Share } = await import('@capacitor/share');
   const { uri } = await Filesystem.writeFile({
     path: filename,
@@ -40,11 +68,8 @@ async function saveFileNative(json: string, filename: string) {
     directory: Directory.Cache,
     encoding: Encoding.UTF8,
   });
-  await Share.share({
-    title: '마음의 기도 백업',
-    files: [uri],
-    dialogTitle: '저장 위치 선택',
-  });
+  await Share.share({ title: '마음의 기도 백업', files: [uri], dialogTitle: '저장 위치 선택' });
+  return 'share';
 }
 
 // 클립보드 읽기 (Capacitor 전용)
@@ -79,6 +104,7 @@ const SettingsPage: React.FC = () => {
 
   const importInputRef  = useRef<HTMLInputElement>(null);
   const fileInputRef    = useRef<HTMLInputElement>(null);
+  const longPressTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -96,8 +122,13 @@ const SettingsPage: React.FC = () => {
 
     try {
       if (isNativePlatform()) {
-        // 네이티브: 저장 위치 선택 시트 (Android 보안정책상 직접 다운로드 불가)
-        await saveFileNative(json, filename);
+        const result = await saveFileNative(json, filename);
+        if (result === 'download') {
+          showToast(`다운로드 폴더에 저장되었습니다.\n${filename}`);
+        } else if (result === 'external') {
+          showToast(`저장되었습니다.\n파일 관리자 > Android > data > files`);
+        }
+        // 'share'는 시트에서 사용자가 직접 선택
       } else {
         // 웹: blob 다운로드
         const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
@@ -453,6 +484,23 @@ const SettingsPage: React.FC = () => {
               autoCapitalize="characters"
               onKeyDown={e => { if (e.key === 'Enter') handleServerImport(); }}
               disabled={importLoading}
+              // 삼성 WebView 롱프레스 오버레이 차단 + 500ms 후 클립보드 자동 붙여넣기
+              onTouchStart={e => {
+                e.preventDefault();                        // 삼성 오버레이 방지
+                importInputRef.current?.focus();           // 키보드 수동 활성화
+                longPressTimer.current = setTimeout(async () => {
+                  try {
+                    const text = await readClipboard();
+                    if (text) setImportCode(text.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12));
+                  } catch {}
+                }, 500);
+              }}
+              onTouchEnd={() => {
+                if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+              }}
+              onTouchMove={() => {
+                if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+              }}
             />
             <button
               className="set-modal__share-btn"
