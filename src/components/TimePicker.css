@@ -11,7 +11,7 @@
   border-radius: 24px 24px 0 0;
   width: 100%;
   padding: 0 20px 32px;
-  padding-bottom: calc(32px + var(--nav-bar-height, 0px));
+  padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
 }
 .tp-handle {
   width: 36px; height: 4px;
