@@ -54,13 +54,17 @@ public class MainActivity extends BridgeActivity {
             ViewCompat.setOnApplyWindowInsetsListener(
                 getWindow().getDecorView(),
                 (view, windowInsets) -> {
-                    int navBarHeight = windowInsets
+                    int navBarPx = windowInsets
                         .getInsets(WindowInsetsCompat.Type.navigationBars())
                         .bottom;
-                    Log.d(TAG, "navBarHeight: " + navBarHeight);
+                    float density = getResources().getDisplayMetrics().density;
+                    int navBarDp = Math.round(navBarPx / density);
+                    Log.d(TAG, "navBarHeight px=" + navBarPx + " dp=" + navBarDp);
+                    // CSS px ≈ dp; env(safe-area-inset-bottom)이 우선이지만 백업으로도 설정
                     String js = String.format(
-                        "document.documentElement.style.setProperty('--nav-bar-height', '%dpx');",
-                        navBarHeight
+                        "document.documentElement.style.setProperty('--nav-bar-height', '%dpx');" +
+                        "document.documentElement.style.setProperty('--ion-safe-area-bottom', '%dpx');",
+                        navBarDp, navBarDp
                     );
                     if (getBridge() != null && getBridge().getWebView() != null) {
                         getBridge().getWebView().post(() ->
