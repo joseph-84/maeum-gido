@@ -4,6 +4,16 @@
   padding: 0;
 }
 
+/* Ionic이 전역으로 user-select:none을 설정하므로,
+   입력창은 강제로 text 선택 가능하게 오버라이드
+   → Android 롱프레스 시 붙여넣기 메뉴 정상 표시 */
+input,
+textarea {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
 body {
   background: #f4f3ef;
   font-family: 'Noto Sans KR', sans-serif;

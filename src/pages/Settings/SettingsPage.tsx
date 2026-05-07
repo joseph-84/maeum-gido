@@ -440,41 +440,20 @@ const SettingsPage: React.FC = () => {
       {/* ── 서버 가져오기 모달 ───────────────────────────────────── */}
       {importModal && (
         <div className="set-modal-bg" onClick={() => { if (!importLoading) setImportModal(false); }}>
-          <div
-            className="set-modal"
-            onClick={e => e.stopPropagation()}
-            onTouchStart={e => e.stopPropagation()}
-            onTouchEnd={e => e.stopPropagation()}
-          >
+          <div className="set-modal" onClick={e => e.stopPropagation()}>
             <div className="set-modal__title">☁️ 서버에서 가져오기</div>
             <div className="set-modal__desc">서버 내보내기 시 받은 비밀번호를 입력하세요.</div>
-            <div className="set-modal__input-row">
-              <input
-                ref={importInputRef}
-                className="set-modal__input"
-                placeholder="비밀번호 (예: A3BKPX7M)"
-                value={importCode}
-                onChange={e => setImportCode(e.target.value.toUpperCase())}
-                maxLength={12}
-                autoCapitalize="characters"
-                onKeyDown={e => { if (e.key === 'Enter') handleServerImport(); }}
-                onContextMenu={e => e.preventDefault()}
-                disabled={importLoading}
-              />
-              <button
-                className="set-modal__paste-btn"
-                onClick={async () => {
-                  try {
-                    const text = await readClipboard();
-                    if (!text) { showToast('클립보드가 비어 있습니다.'); return; }
-                    setImportCode(text.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12));
-                  } catch {
-                    showToast('클립보드를 읽을 수 없습니다.');
-                  }
-                }}
-                disabled={importLoading}
-              >붙여넣기</button>
-            </div>
+            <input
+              ref={importInputRef}
+              className="set-modal__input"
+              placeholder="비밀번호 (예: A3BKPX7M)"
+              value={importCode}
+              onChange={e => setImportCode(e.target.value.toUpperCase())}
+              maxLength={12}
+              autoCapitalize="characters"
+              onKeyDown={e => { if (e.key === 'Enter') handleServerImport(); }}
+              disabled={importLoading}
+            />
             <button
               className="set-modal__share-btn"
               onClick={handleServerImport}
