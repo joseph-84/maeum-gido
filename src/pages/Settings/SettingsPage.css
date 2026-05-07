@@ -189,6 +189,16 @@
 .set-modal__input:focus { border-color: #2D5016; }
 .set-modal__input::placeholder { font-size: 13px; letter-spacing: 0; font-family: 'Noto Sans KR', sans-serif; color: #ccc; }
 
+/* 입력창 안내 메시지 */
+.set-modal__input-hint {
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  margin: 2px 0 8px;
+  font-family: 'Noto Sans KR', sans-serif;
+  line-height: 1.4;
+}
+
 /* 버튼 */
 .set-modal__share-btn {
   background: #2D5016;

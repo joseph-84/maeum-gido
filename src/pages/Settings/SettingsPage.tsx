@@ -502,6 +502,9 @@ const SettingsPage: React.FC = () => {
                 if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
               }}
             />
+            <div className="set-modal__input-hint">
+              💡 입력창을 길게 누르면 클립보드 내용이 붙여넣기 됩니다.
+            </div>
             <button
               className="set-modal__share-btn"
               onClick={handleServerImport}
