@@ -17,6 +17,9 @@ interface NativeAlarmData {
 interface NativeAlarmPlugin {
   schedule(options: { alarms: NativeAlarmData[] }): Promise<void>;
   cancel(): Promise<void>;
+  getAlarmStatus(): Promise<{ canScheduleExactAlarms: boolean; isBatteryOptimized: boolean }>;
+  openBatterySettings(): Promise<void>;
+  openExactAlarmSettings(): Promise<void>;
 }
 
 const NativeAlarm = registerPlugin<NativeAlarmPlugin>('NativeAlarm');
@@ -184,4 +187,22 @@ export function useNotify(
   }, [scheduleAll]);
 
   return { requestPermission, scheduleAll };
+}
+
+// ── 알람 상태 확인 + 설정 열기 (설정 페이지에서 직접 호출) ──────────
+
+export async function checkAlarmStatus() {
+  try {
+    return await NativeAlarm.getAlarmStatus();
+  } catch {
+    return { canScheduleExactAlarms: true, isBatteryOptimized: false };
+  }
+}
+
+export async function openBatterySettings() {
+  try { await NativeAlarm.openBatterySettings(); } catch {}
+}
+
+export async function openExactAlarmSettings() {
+  try { await NativeAlarm.openExactAlarmSettings(); } catch {}
 }

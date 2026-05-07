@@ -116,6 +116,17 @@ public class AlarmScheduler {
         );
 
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+        // Android 12+(S) : canScheduleExactAlarms() 확인
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (!am.canScheduleExactAlarms()) {
+                // 정확한 알람 권한 없으면 비정확 알람으로 대체
+                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pi);
+                Log.w(TAG, "canScheduleExactAlarms=false → setAndAllowWhileIdle 사용 id=" + id);
+                return;
+            }
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pi);
         } else {

@@ -1,6 +1,7 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAppContext } from '../../hooks/useAppData';
 import { savePrayers, saveGroups, saveCompletions, saveTodayList } from '../../utils/storage';
+import { checkAlarmStatus, openBatterySettings, openExactAlarmSettings } from '../../hooks/useNotify';
 import './SettingsPage.css';
 
 // ── 서버 주소 ──────────────────────────────────────────────────────
@@ -105,6 +106,18 @@ const SettingsPage: React.FC = () => {
   const importInputRef  = useRef<HTMLInputElement>(null);
   const fileInputRef    = useRef<HTMLInputElement>(null);
   const longPressTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [alarmStatus, setAlarmStatus] = useState<{
+    canScheduleExactAlarms: boolean;
+    isBatteryOptimized: boolean;
+  } | null>(null);
+
+  // 마운트 시 알람 상태 체크
+  useEffect(() => {
+    if (isNativePlatform()) {
+      checkAlarmStatus().then(setAlarmStatus);
+    }
+  }, []);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -288,6 +301,19 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  // ── 배터리 최적화 제외 요청 ────────────────────────────────────────
+  const handleBatteryOptimization = async () => {
+    await openBatterySettings();
+    // 설정에서 돌아왔을 때 상태 갱신
+    setTimeout(() => checkAlarmStatus().then(setAlarmStatus), 1000);
+  };
+
+  // ── 정확한 알람 권한 설정 열기 ──────────────────────────────────────
+  const handleExactAlarm = async () => {
+    await openExactAlarmSettings();
+    setTimeout(() => checkAlarmStatus().then(setAlarmStatus), 1000);
+  };
+
   // ── 전체 초기화 ─────────────────────────────────────────────────
   const handleClearData = () => {
     if (!window.confirm(
@@ -359,10 +385,45 @@ const SettingsPage: React.FC = () => {
           <div className="set-row__icon" style={{ background: '#E8F5E9' }}>✅</div>
           <div className="set-row__text">
             <div className="set-row__title">알림 권한 확인</div>
-            <div className="set-row__desc">브라우저 알림 권한을 요청합니다</div>
+            <div className="set-row__desc">알림 권한을 요청합니다</div>
           </div>
           <div className="set-row__arrow">›</div>
         </button>
+
+        {/* 정확한 알람 권한 경고 */}
+        {alarmStatus && !alarmStatus.canScheduleExactAlarms && (
+          <button className="set-row set-row--btn set-row--warn" onClick={handleExactAlarm}>
+            <div className="set-row__icon" style={{ background: '#FFF3E0' }}>⚠️</div>
+            <div className="set-row__text">
+              <div className="set-row__title set-row__title--warn">정확한 알람 권한 없음</div>
+              <div className="set-row__desc">탭하여 설정에서 허용해주세요</div>
+            </div>
+            <div className="set-row__arrow">›</div>
+          </button>
+        )}
+
+        {/* 배터리 최적화 경고 */}
+        {alarmStatus && alarmStatus.isBatteryOptimized && (
+          <button className="set-row set-row--btn set-row--warn" onClick={handleBatteryOptimization}>
+            <div className="set-row__icon" style={{ background: '#FFF3E0' }}>🔋</div>
+            <div className="set-row__text">
+              <div className="set-row__title set-row__title--warn">배터리 최적화 활성화됨</div>
+              <div className="set-row__desc">알람이 차단될 수 있습니다. 탭하여 해제하세요</div>
+            </div>
+            <div className="set-row__arrow">›</div>
+          </button>
+        )}
+
+        {/* 모두 정상 */}
+        {alarmStatus && alarmStatus.canScheduleExactAlarms && !alarmStatus.isBatteryOptimized && (
+          <div className="set-row">
+            <div className="set-row__icon" style={{ background: '#E8F5E9' }}>🟢</div>
+            <div className="set-row__text">
+              <div className="set-row__title">알람 정상</div>
+              <div className="set-row__desc">정확한 알람과 배터리 권한이 허용되어 있습니다</div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 데이터 */}
