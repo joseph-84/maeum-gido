@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useAppContext } from '../../hooks/useAppData';
 import { savePrayers, saveGroups, saveCompletions, saveTodayList } from '../../utils/storage';
 import './SettingsPage.css';
@@ -52,7 +52,8 @@ const SettingsPage: React.FC = () => {
   const [importCode,  setImportCode]    = useState('');
   const [importLoading,setImportLoading]= useState(false);
 
-  const importInputRef = useRef<HTMLInputElement>(null);
+  const importInputRef  = useRef<HTMLInputElement>(null);
+  const fileInputRef    = useRef<HTMLInputElement>(null);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -87,36 +88,37 @@ const SettingsPage: React.FC = () => {
 
   // ── 로컬 가져오기 (파일 선택) ───────────────────────────────────
   const handleImport = () => {
-    const input    = document.createElement('input');
-    input.type     = 'file';
-    input.accept   = '.json';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const data = JSON.parse(ev.target?.result as string);
-          if (Array.isArray(data)) {
-            savePrayers(data);
-            showToast(`기도문 ${data.length}개를 가져왔습니다. 앱을 재시작하면 반영됩니다.`);
-          } else if (data.prayers) {
-            savePrayers(data.prayers);
-            if (data.groups)      saveGroups(data.groups);
-            if (data.completions) saveCompletions(data.completions);
-            if (data.todayList)   { saveTodayList(data.todayList); setTodayList(data.todayList); }
-            showToast('백업을 복원했습니다. 앱을 재시작하면 완전히 반영됩니다.');
-          } else {
-            showToast('지원하지 않는 파일 형식입니다.');
-          }
-        } catch {
-          showToast('파일을 읽는 중 오류가 발생했습니다.');
-        }
-      };
-      reader.readAsText(file);
-    };
-    input.click();
+    fileInputRef.current?.click();
   };
+
+  const handleFileSelected = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target?.result as string);
+        if (Array.isArray(data)) {
+          savePrayers(data);
+          showToast(`기도문 ${data.length}개를 가져왔습니다. 잠시 후 새로고침됩니다.`);
+          setTimeout(() => window.location.reload(), 1500);
+        } else if (data.prayers) {
+          savePrayers(data.prayers);
+          if (data.groups)      saveGroups(data.groups);
+          if (data.completions) saveCompletions(data.completions);
+          if (data.todayList)   { saveTodayList(data.todayList); setTodayList(data.todayList); }
+          showToast('백업을 복원했습니다. 잠시 후 새로고침됩니다.');
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          showToast('지원하지 않는 파일 형식입니다.');
+        }
+      } catch {
+        showToast('파일을 읽는 중 오류가 발생했습니다.');
+      }
+    };
+    reader.readAsText(file);
+  }, []);
 
   // ── 서버로 내보내기 ─────────────────────────────────────────────
   const handleServerExport = async () => {
@@ -163,17 +165,23 @@ const SettingsPage: React.FC = () => {
       const res = await fetch(`${BACKUP_SERVER}/webhook/mgido-import?code=${code}`);
       if (res.status === 404) throw new Error('not_found');
       if (!res.ok)            throw new Error(`server_${res.status}`);
-      const data = await res.json();
+      const raw  = await res.json();
+      // n8n이 JSON.stringify 결과를 한 번 더 인코딩하는 경우 방어
+      const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (!data.prayers && !data.groups) throw new Error('empty_data');
       if (data.prayers)      savePrayers(data.prayers);
       if (data.groups)       saveGroups(data.groups);
       if (data.completions)  saveCompletions(data.completions);
       if (data.todayList)    { saveTodayList(data.todayList); setTodayList(data.todayList); }
       setImportModal(false);
       setImportCode('');
-      showToast('서버에서 데이터를 복원했습니다. 앱을 재시작하면 완전히 반영됩니다.');
+      showToast('서버에서 데이터를 복원했습니다. 잠시 후 새로고침됩니다.');
+      setTimeout(() => window.location.reload(), 1500);
     } catch (e: any) {
       if (e?.message === 'not_found') {
         showToast('비밀번호가 올바르지 않거나 만료되었습니다.');
+      } else if (e?.message === 'empty_data') {
+        showToast('서버에서 데이터를 받았지만 내용이 비어 있습니다.');
       } else {
         showToast('서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.');
       }
@@ -361,6 +369,15 @@ const SettingsPage: React.FC = () => {
       </div>
 
       {toast && <div className="set-toast">{toast}</div>}
+
+      {/* 로컬 가져오기용 hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        style={{ display: 'none' }}
+        onChange={handleFileSelected}
+      />
 
       {/* ── 서버 내보내기 결과 모달 ──────────────────────────────── */}
       {exportModal && (
