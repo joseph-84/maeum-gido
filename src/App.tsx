@@ -142,11 +142,10 @@ const App: React.FC = () => {
     getNotificationTitle
   );
 
-  // ── 상태 바: WebView 위에 겹치지 않도록 설정 ────────────
+  // ── 상태 바 색상/스타일 설정 (오버레이 해제는 MainActivity에서 네이티브로 처리)
   useEffect(() => {
     const initStatusBar = async () => {
       try {
-        await StatusBar.setOverlaysWebView({ overlay: false });
         await StatusBar.setBackgroundColor({ color: '#2D5016' });
         await StatusBar.setStyle({ style: Style.Dark });
       } catch {

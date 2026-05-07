@@ -56,12 +56,16 @@ public class MainActivity extends BridgeActivity {
             ViewCompat.setOnApplyWindowInsetsListener(
                 getWindow().getDecorView(),
                 (view, windowInsets) -> {
+                    float density = getResources().getDisplayMetrics().density;
+
+                    // 내비게이션 바 높이
                     int navBarPx = windowInsets
                         .getInsets(WindowInsetsCompat.Type.navigationBars())
                         .bottom;
-                    float density = getResources().getDisplayMetrics().density;
                     int navBarDp = Math.round(navBarPx / density);
+
                     Log.d(TAG, "navBarHeight px=" + navBarPx + " dp=" + navBarDp);
+
                     // CSS px ≈ dp; env(safe-area-inset-bottom)이 우선이지만 백업으로도 설정
                     String js = String.format(
                         "document.documentElement.style.setProperty('--nav-bar-height', '%dpx');" +
