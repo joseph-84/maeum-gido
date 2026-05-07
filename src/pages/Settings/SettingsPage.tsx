@@ -166,12 +166,20 @@ const SettingsPage: React.FC = () => {
       if (res.status === 404) throw new Error('not_found');
       if (!res.ok)            throw new Error(`server_${res.status}`);
       const raw  = await res.json();
-      // n8n 응답 형태가 다양할 수 있으므로 단계적으로 벗겨냄
-      let parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-      // { data: { prayers, ... } } 형태인 경우
-      if (!parsed.prayers && !parsed.groups && parsed.data) parsed = parsed.data;
-      // 여전히 string인 경우 (이중 인코딩)
+      // n8n 응답 구조 정규화
+      // 실제 응답: { "0": { "data": "{JSON문자열}" } }
+      let parsed: any = raw;
       if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+      // { "0": { data } } 또는 { "0": { "data": "string" } } 형태
+      if (!parsed.prayers && !parsed.groups) {
+        const firstItem = parsed[0] ?? parsed['0'];
+        if (firstItem != null) {
+          const inner = firstItem.data ?? firstItem;
+          parsed = typeof inner === 'string' ? JSON.parse(inner) : inner;
+        } else if (parsed.data != null) {
+          parsed = typeof parsed.data === 'string' ? JSON.parse(parsed.data) : parsed.data;
+        }
+      }
       const data = parsed;
       if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('empty_data');
       if (data.prayers)      savePrayers(data.prayers);
