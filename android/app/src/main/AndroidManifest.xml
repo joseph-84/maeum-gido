@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
         android:allowBackup="true"
@@ -29,6 +30,24 @@
             </intent-filter>
 
         </activity>
+
+        <!-- 기기 재부팅 시 알람 복원 -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED"/>
+                <!-- 삼성/HTC 일부 기기 -->
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- AlarmManager 알람 발생 시 알림 표시 -->
+        <receiver
+            android:name=".AlarmReceiver"
+            android:exported="false"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

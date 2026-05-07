@@ -24,6 +24,7 @@ body {
 .app-tab-bar {
   background: #fff;
   border-top: 0.5px solid rgba(0,0,0,0.1);
+  padding-bottom: var(--nav-bar-height, 0px);
 }
 
 .app-tab-btn {
