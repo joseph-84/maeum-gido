@@ -1,7 +1,7 @@
 .home-page { height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#f4f3ef; font-family:'Noto Sans KR',sans-serif; padding-bottom:calc(70px + env(safe-area-inset-bottom, 0px)); }
 
 /* 헤더 */
-.home-header { background:#2D5016; padding:48px 20px 20px; }
+.home-header { background:#2D5016; padding:20px 20px 20px; }
 .home-header__row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .home-header__title { color:#fff; font-size:24px; font-weight:500; }
 .home-header__date  { color:rgba(255,255,255,.8); font-size:13px; margin-top:4px; display:flex; align-items:center; gap:8px; }

@@ -43,6 +43,7 @@ import {
   settings,
 } from 'ionicons/icons';
 import { App as CapacitorApp } from '@capacitor/app';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 /* ── 페이지 컴포넌트 (lazy load로 초기 번들 최적화) ── */
 import { lazy, Suspense } from 'react';
@@ -126,10 +127,12 @@ const App: React.FC = () => {
   const appData = useAppData();
   const getNotificationTitle = useCallback(
     (item: TodayItem) => {
+      if (item.type === 'bible') {
+        return item.id === 'bible-gospel' ? '오늘의 복음' : '오늘의 독서';
+      }
       if (item.type === 'prayer') {
         return appData.prayers.find((p) => p.id === item.id)?.title ?? '기도';
       }
-
       return appData.groups.find((g) => g.id === item.id)?.name ?? '기도 모임';
     },
     [appData.prayers, appData.groups]
@@ -138,6 +141,20 @@ const App: React.FC = () => {
     appData.isLoading ? [] : appData.todayList,
     getNotificationTitle
   );
+
+  // ── 상태 바: WebView 위에 겹치지 않도록 설정 ────────────
+  useEffect(() => {
+    const initStatusBar = async () => {
+      try {
+        await StatusBar.setOverlaysWebView({ overlay: false });
+        await StatusBar.setBackgroundColor({ color: '#2D5016' });
+        await StatusBar.setStyle({ style: Style.Dark });
+      } catch {
+        // 웹 환경에서는 무시
+      }
+    };
+    initStatusBar();
+  }, []);
 
   // ── 앱 시작 시 알림 재등록 ──────────────────────────────
   useEffect(() => {

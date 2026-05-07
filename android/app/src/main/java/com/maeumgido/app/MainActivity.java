@@ -13,6 +13,8 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // 로컬 플러그인 명시적 등록 (Capacitor 자동감지 미적용 대비)
+        registerPlugin(NativeAlarmPlugin.class);
         super.onCreate(savedInstanceState);
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {

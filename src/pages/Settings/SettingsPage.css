@@ -7,7 +7,7 @@
   padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
 }
 
-.set-header { background: #2D5016; padding: 48px 20px 24px; }
+.set-header { background: #2D5016; padding: 20px 20px 24px; }
 .set-header__title { font-size: 24px; font-weight: 500; color: #fff; }
 .set-header__sub   { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 4px; }
 
