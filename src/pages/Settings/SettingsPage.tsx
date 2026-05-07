@@ -4,7 +4,7 @@ import { savePrayers, saveGroups, saveCompletions, saveTodayList } from '../../u
 import './SettingsPage.css';
 
 // ── 서버 주소 (배포 후 실제 주소로 변경) ───────────────────────────
-const BACKUP_SERVER = 'https://n8n.joseph84.freeddns.org:3456';
+const BACKUP_SERVER = 'https://n8n.joseph84.freeddns.org';
 
 // ── 유틸 ─────────────────────────────────────────────────────────
 function isNativePlatform() {
@@ -122,7 +122,7 @@ const SettingsPage: React.FC = () => {
   const handleServerExport = async () => {
     setExportLoading(true);
     try {
-      const res = await fetch(`${BACKUP_SERVER}/backup`, {
+      const res = await fetch(`${BACKUP_SERVER}/webhook/mgido-export`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ prayers, groups, completions, todayList }),
@@ -160,7 +160,7 @@ const SettingsPage: React.FC = () => {
     }
     setImportLoading(true);
     try {
-      const res = await fetch(`${BACKUP_SERVER}/backup/${code}`);
+      const res = await fetch(`${BACKUP_SERVER}/webhook/mgido-import?code=${code}`);
       if (res.status === 404) throw new Error('not_found');
       if (!res.ok)            throw new Error(`server_${res.status}`);
       const data = await res.json();
