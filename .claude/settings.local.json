@@ -7,7 +7,9 @@
       "Bash(npm run *)",
       "Bash(npx cap *)",
       "Bash(git -C \"D:\\\\maeum-gido\\\\.claude\\\\worktrees\\\\exciting-goldberg-14da2d\" status)",
-      "Bash(git -C \"D:\\\\maeum-gido\" worktree list)"
+      "Bash(git -C \"D:\\\\maeum-gido\" worktree list)",
+      "Bash(git -C \"D:\\\\maeum-gido\\\\.claude\\\\worktrees\\\\strange-rubin-fbb27c\" add -A)",
+      "Bash(git -C \"D:\\\\maeum-gido\\\\.claude\\\\worktrees\\\\strange-rubin-fbb27c\" status)"
     ]
   }
 }
