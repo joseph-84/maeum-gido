@@ -5,7 +5,9 @@
       "Bash(npx tsc *)",
       "Bash(./node_modules/.bin/tsc --noEmit)",
       "Bash(npm run *)",
-      "Bash(npx cap *)"
+      "Bash(npx cap *)",
+      "Bash(git -C \"D:\\\\maeum-gido\\\\.claude\\\\worktrees\\\\exciting-goldberg-14da2d\" status)",
+      "Bash(git -C \"D:\\\\maeum-gido\" worktree list)"
     ]
   }
 }
