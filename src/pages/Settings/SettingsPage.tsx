@@ -3,7 +3,7 @@ import { useAppContext } from '../../hooks/useAppData';
 import { savePrayers, saveGroups, saveCompletions, saveTodayList } from '../../utils/storage';
 import './SettingsPage.css';
 
-// ── 서버 주소 (배포 후 실제 주소로 변경) ───────────────────────────
+// ── 서버 주소 ──────────────────────────────────────────────────────
 const BACKUP_SERVER = 'https://n8n.joseph84.freeddns.org';
 
 // ── 유틸 ─────────────────────────────────────────────────────────
@@ -14,15 +14,35 @@ function isNativePlatform() {
   } catch { return false; }
 }
 
+// 네이티브 공유 시트 (카카오, 문자, 메일 등)
 async function shareText(title: string, text: string) {
-  if (navigator.share) {
+  if (isNativePlatform()) {
+    // Capacitor Share 플러그인 사용 → 앱 공유 시트 표시
+    const { Share } = await import('@capacitor/share');
+    await Share.share({ title, text, dialogTitle: '공유하기' });
+  } else if (navigator.share) {
     await navigator.share({ title, text });
   } else {
     await navigator.clipboard.writeText(text);
   }
 }
 
+// 파일 공유 (로컬 내보내기)
 async function shareFile(json: string, filename: string) {
+  if (isNativePlatform()) {
+    // Capacitor Filesystem에 임시 저장 후 Share
+    const { Share } = await import('@capacitor/share');
+    const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
+    const { uri } = await Filesystem.writeFile({
+      path: filename,
+      data: json,
+      directory: Directory.Cache,
+      encoding: Encoding.UTF8,
+    });
+    await Share.share({ title: '마음의 기도 백업', files: [uri], dialogTitle: '파일 공유' });
+    return true;
+  }
+  // 웹: 기존 Web Share API
   const blob = new Blob([json], { type: 'application/json' });
   const file = new File([blob], filename, { type: 'application/json' });
   if (navigator.canShare?.({ files: [file] })) {

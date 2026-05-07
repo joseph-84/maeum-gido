@@ -185,6 +185,9 @@
   outline: none;
   transition: border-color 0.15s;
   margin: 4px 0;
+  /* 롱프레스 붙여넣기 메뉴 활성화 */
+  -webkit-user-select: text;
+  user-select: text;
 }
 .set-modal__input:focus { border-color: #2D5016; }
 .set-modal__input::placeholder { font-size: 13px; letter-spacing: 0; font-family: 'Noto Sans KR', sans-serif; color: #ccc; }
