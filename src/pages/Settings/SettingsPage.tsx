@@ -27,29 +27,21 @@ async function shareText(title: string, text: string) {
   }
 }
 
-// 파일 공유 (로컬 내보내기)
-async function shareFile(json: string, filename: string) {
+// 파일 저장 (로컬 내보내기)
+// - 네이티브: Filesystem.External (앱 외부저장소, 파일관리자에서 접근 가능)
+// - 웹: <a download> blob 방식
+async function saveFileToDevice(json: string, filename: string): Promise<string | null> {
   if (isNativePlatform()) {
-    // Capacitor Filesystem에 임시 저장 후 Share
-    const { Share } = await import('@capacitor/share');
     const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
-    const { uri } = await Filesystem.writeFile({
+    const result = await Filesystem.writeFile({
       path: filename,
       data: json,
-      directory: Directory.Cache,
+      directory: Directory.External,   // /sdcard/Android/data/<pkg>/files/
       encoding: Encoding.UTF8,
     });
-    await Share.share({ title: '마음의 기도 백업', files: [uri], dialogTitle: '파일 공유' });
-    return true;
+    return result.uri ?? null;
   }
-  // 웹: 기존 Web Share API
-  const blob = new Blob([json], { type: 'application/json' });
-  const file = new File([blob], filename, { type: 'application/json' });
-  if (navigator.canShare?.({ files: [file] })) {
-    await navigator.share({ files: [file], title: '마음의 기도 백업' });
-    return true;
-  }
-  return false;
+  return null;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -80,7 +72,7 @@ const SettingsPage: React.FC = () => {
     setTimeout(() => setToast(''), 3000);
   };
 
-  // ── 로컬 내보내기 (공유 시트) ───────────────────────────────────
+  // ── 로컬 내보내기 (기기 저장) ─────────────────────────────────
   const handleExport = async () => {
     const data = {
       exportedAt: new Date().toISOString(),
@@ -90,9 +82,12 @@ const SettingsPage: React.FC = () => {
     const filename = `maeum-gido-backup-${new Date().toISOString().slice(0, 10)}.json`;
 
     try {
-      const shared = await shareFile(json, filename);
-      if (!shared) {
-        // 파일 공유 미지원 → 일반 다운로드 fallback
+      if (isNativePlatform()) {
+        // 네이티브: 기기 외부저장소에 저장
+        await saveFileToDevice(json, filename);
+        showToast(`백업 파일이 저장되었습니다.\n(파일 관리자 > Android > data > files)`);
+      } else {
+        // 웹: blob 다운로드
         const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
         const a   = Object.assign(document.createElement('a'), { href: url, download: filename });
         document.body.appendChild(a);
@@ -102,7 +97,7 @@ const SettingsPage: React.FC = () => {
         showToast('백업 파일이 다운로드되었습니다.');
       }
     } catch (e: any) {
-      if (e?.name !== 'AbortError') showToast('내보내기 중 오류가 발생했습니다.');
+      showToast('내보내기 중 오류가 발생했습니다.');
     }
   };
 
@@ -436,17 +431,31 @@ const SettingsPage: React.FC = () => {
           <div className="set-modal" onClick={e => e.stopPropagation()}>
             <div className="set-modal__title">☁️ 서버에서 가져오기</div>
             <div className="set-modal__desc">서버 내보내기 시 받은 비밀번호를 입력하세요.</div>
-            <input
-              ref={importInputRef}
-              className="set-modal__input"
-              placeholder="비밀번호 (예: A3BKPX7M)"
-              value={importCode}
-              onChange={e => setImportCode(e.target.value.toUpperCase())}
-              maxLength={12}
-              autoCapitalize="characters"
-              onKeyDown={e => { if (e.key === 'Enter') handleServerImport(); }}
-              disabled={importLoading}
-            />
+            <div className="set-modal__input-row">
+              <input
+                ref={importInputRef}
+                className="set-modal__input"
+                placeholder="비밀번호 (예: A3BKPX7M)"
+                value={importCode}
+                onChange={e => setImportCode(e.target.value.toUpperCase())}
+                maxLength={12}
+                autoCapitalize="characters"
+                onKeyDown={e => { if (e.key === 'Enter') handleServerImport(); }}
+                disabled={importLoading}
+              />
+              <button
+                className="set-modal__paste-btn"
+                onClick={async () => {
+                  try {
+                    const text = await navigator.clipboard.readText();
+                    setImportCode((text || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12));
+                  } catch {
+                    showToast('클립보드에서 붙여넣기를 허용해주세요.');
+                  }
+                }}
+                disabled={importLoading}
+              >붙여넣기</button>
+            </div>
             <button
               className="set-modal__share-btn"
               onClick={handleServerImport}
